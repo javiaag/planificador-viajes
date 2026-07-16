@@ -237,6 +237,58 @@ async function callGeminiItinerary(destination, days, tripType, budget, group, s
     return JSON.parse(rawText);
 }
 
+// Comprueba que config.js se cargó y que la key no es el placeholder de la plantilla.
+function isGeminiConfigured() {
+    return typeof GEMINI_API_KEY !== "undefined" && GEMINI_API_KEY && GEMINI_API_KEY !== "TU_API_KEY_AQUI";
+}
+
+// Comprueba que el JSON de la IA tiene la forma mínima que necesitamos para pintarlo sin romper la página.
+function validateItineraryData(data) {
+    if (!data || !Array.isArray(data.days) || data.days.length === 0) {
+        throw new Error("el JSON no trae un array de días válido");
+    }
+    const requiredFields = ["place", "description", "estimatedPrice", "howToGetThere", "lat", "lng"];
+    for (const day of data.days) {
+        for (const period of ["morning", "afternoon", "night"]) {
+            const activity = day[period];
+            if (!activity || requiredFields.some((field) => activity[field] === undefined)) {
+                throw new Error(`el día ${day.day} tiene datos incompletos en "${period}"`);
+            }
+        }
+    }
+    if (!data.budgetBreakdown || typeof data.budgetBreakdown.totalEstimated !== "number") {
+        throw new Error("falta el desglose de presupuesto");
+    }
+    if (!data.recommendations || !Array.isArray(data.recommendations.restaurants) || !Array.isArray(data.recommendations.tips)) {
+        throw new Error("faltan las recomendaciones");
+    }
+}
+
+// Llama a Gemini y valida el resultado; si falla o el JSON viene mal formado, reintenta una vez más.
+async function callGeminiItineraryWithRetry(destination, days, tripType, budget, group, season, accommodation) {
+    let lastError;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+            const data = await callGeminiItinerary(destination, days, tripType, budget, group, season, accommodation);
+            validateItineraryData(data);
+            return data;
+        } catch (error) {
+            lastError = error;
+            console.warn(`Intento ${attempt} fallido (${error.message}).`);
+        }
+    }
+    throw lastError;
+}
+
+function showLoading() {
+    itineraryDiv.innerHTML = `
+        <div class="loading-card">
+            <div class="spinner"></div>
+            <p>✨ Diseñando tu viaje... puede tardar unos segundos</p>
+        </div>
+    `;
+}
+
 function renderActivity(icon, label, activity) {
     return `
         <p>
@@ -295,6 +347,16 @@ function renderAIItinerary(destination, days, tripType, budget, group, season, a
 const form = document.getElementById("trip-form");
 const itineraryDiv = document.getElementById("itinerary");
 
+const submitButton = form.querySelector("button[type=submit]");
+
+function fallbackToRuleBasedPlan(destination, days, tripType, budget, group, season, accommodation, reason) {
+    renderItinerary(destination, days, tripType, budget, group, season, accommodation);
+    itineraryDiv.insertAdjacentHTML(
+        "afterbegin",
+        `<p class="fallback-notice">⚠️ ${reason} — te mostramos el plan básico generado por reglas (sin IA).</p>`
+    );
+}
+
 form.addEventListener("submit", async function (event) {
     event.preventDefault(); // evita que la página se recargue al enviar el formulario
 
@@ -311,13 +373,26 @@ form.addEventListener("submit", async function (event) {
         return;
     }
 
+    submitButton.disabled = true;
+    submitButton.textContent = "Generando...";
+    showLoading();
+
+    if (!isGeminiConfigured()) {
+        fallbackToRuleBasedPlan(destination, days, tripType, budget, group, season, accommodation, "No hay una API key de Gemini configurada");
+        submitButton.disabled = false;
+        submitButton.textContent = "Generar plan ✨";
+        return;
+    }
+
     try {
-        const aiData = await callGeminiItinerary(destination, days, tripType, budget, group, season, accommodation);
+        const aiData = await callGeminiItineraryWithRetry(destination, days, tripType, budget, group, season, accommodation);
         renderAIItinerary(destination, days, tripType, budget, group, season, accommodation, aiData);
     } catch (error) {
-        // Nota: en el Paso 4 esto caerá con elegancia al generador de reglas (renderItinerary) en vez de mostrar solo un error.
-        console.error("Error generando itinerario con IA:", error);
-        itineraryDiv.innerHTML = `<p class="error">No se pudo generar el plan con IA (${error.message}).</p>`;
+        console.error("Fallo definitivo generando itinerario con IA:", error);
+        fallbackToRuleBasedPlan(destination, days, tripType, budget, group, season, accommodation, `No se pudo generar el plan con IA (${error.message})`);
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Generar plan ✨";
     }
 });
 
