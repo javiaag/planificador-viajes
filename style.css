@@ -327,6 +327,17 @@ body {
     font-weight: 600;
 }
 
+.invalid-destination-card {
+    padding: 24px;
+    border-radius: 14px;
+    background-color: var(--color-bg-card);
+    backdrop-filter: blur(6px);
+    text-align: center;
+    color: var(--color-text);
+    font-size: 1.05rem;
+    animation: fadeInUp 0.4s ease both;
+}
+
 .map-section {
     margin-bottom: 20px;
     padding: 16px;
@@ -441,7 +452,8 @@ body {
     .saved-plan-notice,
     .fallback-notice,
     .ai-disclaimer,
-    .error {
+    .error,
+    .invalid-destination-card {
         display: none !important;
     }
 

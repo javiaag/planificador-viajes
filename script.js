@@ -137,6 +137,7 @@ const activitySchema = {
 const itinerarySchema = {
     type: "OBJECT",
     properties: {
+        validDestination: { type: "BOOLEAN" },
         days: {
             type: "ARRAY",
             items: {
@@ -182,7 +183,8 @@ const itinerarySchema = {
             required: ["restaurants", "tips"]
         }
     },
-    required: ["days", "budgetBreakdown", "recommendations"]
+    // Solo "validDestination" es obligatorio: si el destino no es válido, el resto puede faltar.
+    required: ["validDestination"]
 };
 
 function buildPrompt(destination, days, tripType, budget, group, season, accommodation) {
@@ -200,7 +202,8 @@ function buildPrompt(destination, days, tripType, budget, group, season, accommo
 - Época del año: ${seasonInfo[season].label}
 - ${accommodationText}
 
-Instrucciones:
+PRIMERO comprueba si "${destination}" es un lugar real y visitable (ciudad, región, país o zona identificable). Si NO lo es (inventado, sin sentido, ofensivo, o no se puede identificar como lugar), responde ÚNICAMENTE con {"validDestination": false} y nada más — no generes días ni recomendaciones. Si SÍ es un lugar real, responde con "validDestination": true y continúa con estas instrucciones:
+
 1. Para cada día, organiza mañana/tarde/noche con lugares concretos (monumentos, museos, barrios, restaurantes) cercanos entre sí dentro de la misma zona de la ciudad, para minimizar desplazamientos.
 2. Cada actividad debe incluir: nombre del lugar, breve descripción (1 frase), precio estimado de entrada en €, cómo llegar (a pie/metro/bus, indicando desde el alojamiento cuando aplique) y coordenadas lat/lng aproximadas del lugar.
 3. La suma total estimada del viaje debe aproximarse al presupuesto indicado (${budget} €); incluye un desglose aproximado en "budgetBreakdown" y una nota si no ha sido posible ajustarse.
@@ -244,7 +247,13 @@ function isGeminiConfigured() {
 
 // Comprueba que el JSON de la IA tiene la forma mínima que necesitamos para pintarlo sin romper la página.
 function validateItineraryData(data) {
-    if (!data || !Array.isArray(data.days) || data.days.length === 0) {
+    if (!data || typeof data.validDestination !== "boolean") {
+        throw new Error("el JSON no trae el campo validDestination");
+    }
+    if (data.validDestination === false) {
+        return; // destino inválido: es una respuesta legítima, no hay más que comprobar
+    }
+    if (!Array.isArray(data.days) || data.days.length === 0) {
         throw new Error("el JSON no trae un array de días válido");
     }
     const requiredFields = ["place", "description", "estimatedPrice", "howToGetThere", "lat", "lng"];
@@ -374,6 +383,15 @@ const itineraryDiv = document.getElementById("itinerary");
 
 const submitButton = form.querySelector("button[type=submit]");
 
+function showInvalidDestinationMessage(destination) {
+    hideMap();
+    itineraryDiv.innerHTML = `
+        <div class="invalid-destination-card">
+            <p>🤔 No encontramos "<strong>${destination}</strong>" como destino — ¿está bien escrito?</p>
+        </div>
+    `;
+}
+
 function fallbackToRuleBasedPlan(destination, days, tripType, budget, group, season, accommodation, reason) {
     hideMap(); // el generador de reglas no tiene coordenadas reales, así que no hay mapa que mostrar
     renderItinerary(destination, days, tripType, budget, group, season, accommodation);
@@ -412,6 +430,11 @@ form.addEventListener("submit", async function (event) {
 
     try {
         const aiData = await callGeminiItineraryWithRetry(destination, days, tripType, budget, group, season, accommodation);
+        if (aiData.validDestination === false) {
+            // el destino no es un lugar real: no tiene sentido caer al generador de reglas (inventaría un plan para él)
+            showInvalidDestinationMessage(destination);
+            return;
+        }
         renderAIItinerary(destination, days, tripType, budget, group, season, accommodation, aiData);
     } catch (error) {
         console.error("Fallo definitivo generando itinerario con IA:", error);
