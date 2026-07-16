@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planificador de Viajes</title>
+    <!-- Leaflet: librería de mapas gratuita, sin API key, con mapas de OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -58,10 +60,19 @@
             <button type="submit">Generar plan ✨</button>
         </form>
 
+        <!-- Mapa del itinerario: solo aparece cuando el plan viene de la IA (trae coordenadas reales) -->
+        <div id="map-section" class="map-section" style="display: none;">
+            <div id="day-filters" class="day-filters"></div>
+            <div id="map"></div>
+        </div>
+
         <!-- Aquí aparecerá el itinerario generado (vacío por ahora) -->
         <div id="itinerary"></div>
     </div>
 
+    <!-- Leaflet: librería de mapas gratuita, sin API key, con mapas de OpenStreetMap -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="map.js"></script>
     <!-- config.js contiene tu API key personal y NUNCA se sube a Git (ver .gitignore) -->
     <script src="config.js"></script>
     <script src="script.js"></script>
