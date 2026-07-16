@@ -116,7 +116,7 @@ const seasonInfo = {
 
 // --- Integración con Gemini (IA) ---
 // Si Google cambia el nombre del modelo, este es el único sitio donde hay que tocarlo.
-const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = "gemini-3.1-flash-lite";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 // Esquema de una actividad (mañana/tarde/noche comparten la misma forma)
@@ -227,6 +227,8 @@ async function callGeminiItinerary(destination, days, tripType, budget, group, s
     });
 
     if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("Respuesta de error completa de Gemini:", errorBody);
         throw new Error(`Gemini respondió con estado ${response.status}`);
     }
 
