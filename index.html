@@ -35,14 +35,14 @@
             <label for="days">Días:</label>
             <input type="number" id="days" name="days" min="1" max="30" required>
 
-            <label for="trip-type">Tipo de viaje:</label>
-            <select id="trip-type" name="trip-type" required>
-                <option value="">-- Selecciona --</option>
-                <option value="cultural">Cultural</option>
-                <option value="naturaleza">Naturaleza</option>
-                <option value="fiesta">Fiesta</option>
-                <option value="gastronomico">Gastronómico</option>
-            </select>
+            <fieldset class="trip-type-fieldset">
+                <legend>Tipo de viaje (elige entre 1 y 3):</legend>
+                <label class="checkbox-label"><input type="checkbox" name="trip-type" value="cultural"> 🏛️ Cultural</label>
+                <label class="checkbox-label"><input type="checkbox" name="trip-type" value="naturaleza"> 🌿 Naturaleza</label>
+                <label class="checkbox-label"><input type="checkbox" name="trip-type" value="fiesta"> 🎉 Fiesta</label>
+                <label class="checkbox-label"><input type="checkbox" name="trip-type" value="gastronomico"> 🍽️ Gastronómico</label>
+                <label class="checkbox-label"><input type="checkbox" name="trip-type" value="playa"> 🏖️ Playa</label>
+            </fieldset>
 
             <label for="budget">Presupuesto total por persona (€):</label>
             <input type="number" id="budget" name="budget" min="1" placeholder="Ej: 500" required>

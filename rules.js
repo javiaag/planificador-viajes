@@ -83,6 +83,26 @@ const activities = {
             { text: "Cena con maridaje", cost: 3, excludeGroups: ["familia"] },
             { text: "Restaurante con especialidad regional", cost: 2 }
         ]
+    },
+    playa: {
+        morning: [
+            { text: "Paseo por la playa al amanecer", cost: 1 },
+            { text: "Desayuno frente al mar", cost: 2 },
+            { text: "Sesión de yoga en la arena", cost: 1 },
+            { text: "Alquiler de tumbonas y sombrilla", cost: 2 }
+        ],
+        afternoon: [
+            { text: "Baño y descanso en la playa", cost: 1, excludeSeasons: ["invierno"] },
+            { text: "Deportes acuáticos (paddle surf, vela)", cost: 3, excludeSeasons: ["invierno"] },
+            { text: "Paseo por el paseo marítimo", cost: 1 },
+            { text: "Snorkel en una cala cercana", cost: 2, excludeSeasons: ["invierno"] }
+        ],
+        night: [
+            { text: "Cena con vistas al mar", cost: 2 },
+            { text: "Chiringuito de playa con música", cost: 2 },
+            { text: "Paseo nocturno junto al mar", cost: 1 },
+            { text: "Barbacoa en la playa", cost: 2 }
+        ]
     }
 };
 
@@ -103,16 +123,16 @@ function filterActivities(list, budgetLevel, group, season) {
     return filtered;
 }
 
-function renderItinerary(destination, days, tripType, budget, group, season, accommodation) {
-    const plan = activities[tripType];
+function renderItinerary(destination, days, tripTypes, budget, group, season, accommodation) {
     const budgetLevel = estimateBudgetLevel(budget, days);
     const perDay = (budget / days).toFixed(0);
 
-    // los pools se calculan una vez: no dependen del día, solo del presupuesto/grupo/época
+    // Fusiona los bancos de actividades de todos los tipos elegidos antes de filtrar
+    // (mismo filtrado de siempre, solo que sobre la unión de varias listas).
     const pools = {
-        morning: filterActivities(plan.morning, budgetLevel, group, season),
-        afternoon: filterActivities(plan.afternoon, budgetLevel, group, season),
-        night: filterActivities(plan.night, budgetLevel, group, season)
+        morning: filterActivities(tripTypes.flatMap((type) => activities[type].morning), budgetLevel, group, season),
+        afternoon: filterActivities(tripTypes.flatMap((type) => activities[type].afternoon), budgetLevel, group, season),
+        night: filterActivities(tripTypes.flatMap((type) => activities[type].night), budgetLevel, group, season)
     };
 
     let html = `
@@ -121,7 +141,7 @@ function renderItinerary(destination, days, tripType, budget, group, season, acc
             <h2>📋 Resumen del viaje</h2>
             <p>📍 <strong>Destino:</strong> ${destination}</p>
             <p>📅 <strong>Días:</strong> ${days}</p>
-            <p>${tripIcons[tripType]} <strong>Tipo:</strong> ${tripLabels[tripType]}</p>
+            <p><strong>Tipo:</strong> ${formatTripTypes(tripTypes)}</p>
             <p>💶 <strong>Presupuesto:</strong> ${budget} € por persona (~${perDay} €/día)</p>
             <p>${groupInfo[group].emoji} <strong>Grupo:</strong> ${groupInfo[group].label} — ${groupInfo[group].pace}</p>
             <p>${seasonInfo[season].emoji} <strong>Época:</strong> ${seasonInfo[season].label} (${seasonInfo[season].note})</p>
@@ -149,5 +169,5 @@ function renderItinerary(destination, days, tripType, budget, group, season, acc
     }
 
     itineraryDiv.innerHTML = html;
-    saveLastPlan({ destination, days, tripType, budget, group, season, accommodation }, "rules", null);
+    saveLastPlan({ destination, days, tripTypes, budget, group, season, accommodation }, "rules", null);
 }

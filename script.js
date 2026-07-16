@@ -4,6 +4,19 @@ const form = document.getElementById("trip-form");
 const itineraryDiv = document.getElementById("itinerary");
 const submitButton = form.querySelector("button[type=submit]");
 
+// Máximo 3 tipos de viaje combinables: al llegar a 3, se deshabilitan los demás hasta desmarcar uno.
+const tripTypeCheckboxes = document.querySelectorAll('input[name="trip-type"]');
+tripTypeCheckboxes.forEach((checkbox) => {
+    checkbox.addEventListener("change", () => {
+        const checkedCount = document.querySelectorAll('input[name="trip-type"]:checked').length;
+        tripTypeCheckboxes.forEach((cb) => {
+            if (!cb.checked) {
+                cb.disabled = checkedCount >= 3;
+            }
+        });
+    });
+});
+
 function showLoading() {
     hideMap(); // por si quedaba el mapa de una búsqueda anterior visible
     itineraryDiv.innerHTML = `
@@ -44,9 +57,9 @@ function showInvalidDestinationMessage(destination) {
     `;
 }
 
-function fallbackToRuleBasedPlan(destination, days, tripType, budget, group, season, accommodation, reason) {
+function fallbackToRuleBasedPlan(destination, days, tripTypes, budget, group, season, accommodation, reason) {
     hideMap(); // el generador de reglas no tiene coordenadas reales, así que no hay mapa que mostrar
-    renderItinerary(destination, days, tripType, budget, group, season, accommodation);
+    renderItinerary(destination, days, tripTypes, budget, group, season, accommodation);
     itineraryDiv.insertAdjacentHTML(
         "afterbegin",
         `<p class="fallback-notice">⚠️ ${reason} — te mostramos el plan básico generado por reglas (sin IA).</p>`
@@ -58,14 +71,14 @@ form.addEventListener("submit", async function (event) {
 
     const destination = document.getElementById("destination").value.trim();
     const days = parseInt(document.getElementById("days").value, 10);
-    const tripType = document.getElementById("trip-type").value;
+    const tripTypes = Array.from(document.querySelectorAll('input[name="trip-type"]:checked')).map((cb) => cb.value);
     const budget = parseFloat(document.getElementById("budget").value);
     const group = document.getElementById("group").value;
     const season = document.getElementById("season").value;
     const accommodation = document.getElementById("accommodation").value.trim();
 
-    if (!destination || !tripType || !group || !season || !days || days < 1 || days > 30 || !budget || budget <= 0) {
-        itineraryDiv.innerHTML = `<p class="error">Por favor, completa todos los campos obligatorios (días entre 1 y 30, presupuesto mayor que 0).</p>`;
+    if (!destination || tripTypes.length === 0 || tripTypes.length > 3 || !group || !season || !days || days < 1 || days > 30 || !budget || budget <= 0) {
+        itineraryDiv.innerHTML = `<p class="error">Por favor, completa todos los campos obligatorios (elige entre 1 y 3 tipos de viaje, días entre 1 y 30, presupuesto mayor que 0).</p>`;
         return;
     }
 
@@ -74,23 +87,23 @@ form.addEventListener("submit", async function (event) {
     showLoading();
 
     if (!isGeminiConfigured()) {
-        fallbackToRuleBasedPlan(destination, days, tripType, budget, group, season, accommodation, "No hay una API key de Gemini configurada");
+        fallbackToRuleBasedPlan(destination, days, tripTypes, budget, group, season, accommodation, "No hay una API key de Gemini configurada");
         submitButton.disabled = false;
         submitButton.textContent = "Generar plan ✨";
         return;
     }
 
     try {
-        const aiData = await callGeminiItineraryWithRetry(destination, days, tripType, budget, group, season, accommodation);
+        const aiData = await callGeminiItineraryWithRetry(destination, days, tripTypes, budget, group, season, accommodation);
         if (aiData.validDestination === false) {
             // el destino no es un lugar real: no tiene sentido caer al generador de reglas (inventaría un plan para él)
             showInvalidDestinationMessage(destination);
             return;
         }
-        renderAIItinerary(destination, days, tripType, budget, group, season, accommodation, aiData);
+        renderAIItinerary(destination, days, tripTypes, budget, group, season, accommodation, aiData);
     } catch (error) {
         console.error("Fallo definitivo generando itinerario con IA:", error);
-        fallbackToRuleBasedPlan(destination, days, tripType, budget, group, season, accommodation, `No se pudo generar el plan con IA (${error.message})`);
+        fallbackToRuleBasedPlan(destination, days, tripTypes, budget, group, season, accommodation, `No se pudo generar el plan con IA (${error.message})`);
     } finally {
         submitButton.disabled = false;
         submitButton.textContent = "Generar plan ✨";
@@ -104,12 +117,17 @@ function restoreLastPlanIfAny() {
         return;
     }
 
-    const { destination, days, tripType, budget, group, season, accommodation } = saved.formData;
+    const { destination, days, budget, group, season, accommodation } = saved.formData;
+    // Compatibilidad con planes guardados antes de que "tripType" (uno solo) pasara a ser "tripTypes" (varios).
+    const tripTypes = saved.formData.tripTypes || (saved.formData.tripType ? [saved.formData.tripType] : []);
+    if (tripTypes.length === 0) {
+        return;
+    }
 
     if (saved.source === "ai" && saved.aiData) {
-        renderAIItinerary(destination, days, tripType, budget, group, season, accommodation, saved.aiData);
+        renderAIItinerary(destination, days, tripTypes, budget, group, season, accommodation, saved.aiData);
     } else {
-        renderItinerary(destination, days, tripType, budget, group, season, accommodation);
+        renderItinerary(destination, days, tripTypes, budget, group, season, accommodation);
     }
 
     itineraryDiv.insertAdjacentHTML(

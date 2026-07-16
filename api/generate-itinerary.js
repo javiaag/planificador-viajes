@@ -5,7 +5,7 @@
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
-const tripLabels = { cultural: "Cultural", naturaleza: "Naturaleza", fiesta: "Fiesta", gastronomico: "Gastronómico" };
+const tripLabels = { cultural: "Cultural", naturaleza: "Naturaleza", fiesta: "Fiesta", gastronomico: "Gastronómico", playa: "Playa" };
 const groupInfo = {
     jovenes: { label: "Jóvenes" },
     familia: { label: "Familia" },
@@ -86,16 +86,21 @@ const itinerarySchema = {
     required: ["validDestination"]
 };
 
-function buildPrompt(destination, days, tripType, budget, group, season, accommodation) {
+function buildPrompt(destination, days, tripTypes, budget, group, season, accommodation) {
     const accommodationText = accommodation
         ? `El viajero se aloja en: "${accommodation}". Organiza cada día empezando y terminando cerca de esa zona.`
         : "El viajero no ha indicado alojamiento: asume una ubicación céntrica en el destino.";
+
+    const tripTypesText = tripTypes.map((type) => tripLabels[type]).join(", ");
+    const mixInstruction = tripTypes.length > 1
+        ? `Mezcla de forma EQUILIBRADA los tipos de viaje elegidos (${tripTypesText}) a lo largo de los días — no dediques todos los días a un solo tipo, reparte variedad entre ellos.`
+        : `Todas las actividades deben encajar con el tipo de viaje: ${tripTypesText}.`;
 
     return `Eres un asistente de viajes experto. Genera un itinerario detallado y REAL (lugares con nombre concreto, nunca genéricos) para este viaje:
 
 - Destino: ${destination}
 - Duración: ${days} días
-- Tipo de viaje: ${tripLabels[tripType]}
+- Tipos de viaje: ${tripTypesText}
 - Presupuesto total por persona: ${budget} €
 - Grupo: ${groupInfo[group].label}
 - Época del año: ${seasonInfo[season].label}
@@ -103,12 +108,13 @@ function buildPrompt(destination, days, tripType, budget, group, season, accommo
 
 PRIMERO comprueba si "${destination}" es un lugar real y visitable (ciudad, región, país o zona identificable). Si NO lo es (inventado, sin sentido, ofensivo, o no se puede identificar como lugar), responde ÚNICAMENTE con {"validDestination": false} y nada más — no generes días ni recomendaciones. Si SÍ es un lugar real, responde con "validDestination": true y continúa con estas instrucciones:
 
-1. Para cada día, organiza mañana/tarde/noche con lugares concretos (monumentos, museos, barrios, restaurantes) cercanos entre sí dentro de la misma zona de la ciudad, para minimizar desplazamientos.
-2. Cada actividad debe incluir: nombre del lugar, breve descripción (1 frase), precio estimado de entrada en €, cómo llegar (a pie/metro/bus, indicando desde el alojamiento cuando aplique) y coordenadas lat/lng aproximadas del lugar.
-3. La suma total estimada del viaje debe aproximarse al presupuesto indicado (${budget} €); incluye un desglose aproximado en "budgetBreakdown" y una nota si no ha sido posible ajustarse.
-4. Ten en cuenta el grupo (${groupInfo[group].label}) y la época del año (${seasonInfo[season].label}) al elegir actividades (ritmo, clima).
-5. Incluye una sección final de recomendaciones con 3-4 restaurantes concretos (nombre, rango de precio, breve descripción) y varios tips de viajero (cómo evitar colas, qué reservar online, errores típicos de turista).
-6. Todos los precios son estimaciones tuyas, no tienes datos en tiempo real: no inventes una precisión falsa.
+1. ${mixInstruction}
+2. Para cada día, organiza mañana/tarde/noche con lugares concretos (monumentos, museos, barrios, restaurantes) cercanos entre sí dentro de la misma zona de la ciudad, para minimizar desplazamientos.
+3. Cada actividad debe incluir: nombre del lugar, breve descripción (1 frase), precio estimado de entrada en €, cómo llegar (a pie/metro/bus, indicando desde el alojamiento cuando aplique) y coordenadas lat/lng aproximadas del lugar.
+4. La suma total estimada del viaje debe aproximarse al presupuesto indicado (${budget} €); incluye un desglose aproximado en "budgetBreakdown" y una nota si no ha sido posible ajustarse.
+5. Ten en cuenta el grupo (${groupInfo[group].label}) y la época del año (${seasonInfo[season].label}) al elegir actividades (ritmo, clima).
+6. Incluye una sección final de recomendaciones con 3-4 restaurantes concretos (nombre, rango de precio, breve descripción) y varios tips de viajero (cómo evitar colas, qué reservar online, errores típicos de turista).
+7. Todos los precios son estimaciones tuyas, no tienes datos en tiempo real: no inventes una precisión falsa.
 
 Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional.`;
 }
@@ -125,13 +131,13 @@ module.exports = async function handler(req, res) {
         return;
     }
 
-    const { destination, days, tripType, budget, group, season, accommodation } = req.body || {};
-    if (!destination || !tripType || !group || !season || !days || !budget) {
+    const { destination, days, tripTypes, budget, group, season, accommodation } = req.body || {};
+    if (!destination || !Array.isArray(tripTypes) || tripTypes.length === 0 || tripTypes.length > 3 || !group || !season || !days || !budget) {
         res.status(400).json({ error: "Faltan datos del formulario" });
         return;
     }
 
-    const prompt = buildPrompt(destination, days, tripType, budget, group, season, accommodation || "");
+    const prompt = buildPrompt(destination, days, tripTypes, budget, group, season, accommodation || "");
 
     try {
         const geminiResponse = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {

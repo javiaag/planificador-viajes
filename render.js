@@ -10,7 +10,7 @@ function renderActivity(icon, label, activity) {
     `;
 }
 
-function renderAIItinerary(destination, days, tripType, budget, group, season, accommodation, aiData) {
+function renderAIItinerary(destination, days, tripTypes, budget, group, season, accommodation, aiData) {
     let html = `
         <button type="button" class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
         <p class="ai-disclaimer">⚠️ Precios y horarios estimados por IA (sin datos en tiempo real) — verifica siempre en la web oficial antes de viajar.</p>
@@ -18,7 +18,7 @@ function renderAIItinerary(destination, days, tripType, budget, group, season, a
             <h2>📋 Resumen del viaje</h2>
             <p>📍 <strong>Destino:</strong> ${destination}</p>
             <p>📅 <strong>Días:</strong> ${days}</p>
-            <p>${tripIcons[tripType]} <strong>Tipo:</strong> ${tripLabels[tripType]}</p>
+            <p><strong>Tipo:</strong> ${formatTripTypes(tripTypes)}</p>
             <p>💶 <strong>Presupuesto:</strong> ${budget} € indicados — estimado por la IA: ~${aiData.budgetBreakdown.totalEstimated} €</p>
             ${aiData.budgetBreakdown.notes ? `<p class="budget-note">${aiData.budgetBreakdown.notes}</p>` : ""}
             <p>${groupInfo[group].emoji} <strong>Grupo:</strong> ${groupInfo[group].label} — ${groupInfo[group].pace}</p>
@@ -55,5 +55,5 @@ function renderAIItinerary(destination, days, tripType, budget, group, season, a
 
     itineraryDiv.innerHTML = html;
     renderMap(aiData);
-    saveLastPlan({ destination, days, tripType, budget, group, season, accommodation }, "ai", aiData);
+    saveLastPlan({ destination, days, tripTypes, budget, group, season, accommodation }, "ai", aiData);
 }
