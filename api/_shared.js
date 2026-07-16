@@ -31,6 +31,27 @@ const activitySchema = {
     required: ["place", "description", "estimatedPrice", "howToGetThere", "lat", "lng"]
 };
 
+// Recomendaciones propias de un día: restaurantes cercanos a SUS actividades + un tip específico de ese día.
+const dayRecommendationsSchema = {
+    type: "OBJECT",
+    properties: {
+        restaurants: {
+            type: "ARRAY",
+            items: {
+                type: "OBJECT",
+                properties: {
+                    name: { type: "STRING" },
+                    location: { type: "STRING" },
+                    priceRange: { type: "STRING" }
+                },
+                required: ["name", "priceRange"]
+            }
+        },
+        tip: { type: "STRING" }
+    },
+    required: ["restaurants", "tip"]
+};
+
 // Esquema completo del JSON que le pedimos a Gemini (controlled generation)
 const itinerarySchema = {
     type: "OBJECT",
@@ -45,9 +66,10 @@ const itinerarySchema = {
                     zone: { type: "STRING" },
                     morning: activitySchema,
                     afternoon: activitySchema,
-                    night: activitySchema
+                    night: activitySchema,
+                    recommendations: dayRecommendationsSchema
                 },
-                required: ["day", "morning", "afternoon", "night"]
+                required: ["day", "morning", "afternoon", "night", "recommendations"]
             }
         },
         budgetBreakdown: {
@@ -58,27 +80,17 @@ const itinerarySchema = {
             },
             required: ["totalEstimated"]
         },
+        // Recomendaciones GLOBALES del destino (no ligadas a un día concreto). Los restaurantes
+        // concretos viven ahora dentro de cada día, cerca de sus actividades.
         recommendations: {
             type: "OBJECT",
             properties: {
-                restaurants: {
-                    type: "ARRAY",
-                    items: {
-                        type: "OBJECT",
-                        properties: {
-                            name: { type: "STRING" },
-                            priceRange: { type: "STRING" },
-                            description: { type: "STRING" }
-                        },
-                        required: ["name", "priceRange"]
-                    }
-                },
                 tips: {
                     type: "ARRAY",
                     items: { type: "STRING" }
                 }
             },
-            required: ["restaurants", "tips"]
+            required: ["tips"]
         }
     },
     // Solo "validDestination" es obligatorio: si el destino no es válido, el resto puede faltar.
@@ -113,11 +125,12 @@ PRIMERO comprueba si "${destination}" es un lugar real y visitable (ciudad, regi
 1. ${mixInstruction}
 2. Para cada día, organiza mañana/tarde/noche con lugares concretos (monumentos, museos, barrios, restaurantes) cercanos entre sí dentro de la misma zona de la ciudad, para minimizar desplazamientos.
 3. Cada actividad debe incluir: nombre del lugar, breve descripción (1 frase), precio estimado de entrada en €, cómo llegar (a pie/metro/bus, indicando desde el alojamiento cuando aplique) y coordenadas lat/lng aproximadas del lugar.
-4. La suma total estimada del viaje debe aproximarse al presupuesto indicado (${budget} €); incluye un desglose aproximado en "budgetBreakdown" y una nota si no ha sido posible ajustarse.
-5. Ten en cuenta el grupo (${groupInfo[group].label}), la época del año (${seasonInfo[season].label}) y las preferencias del viajero (si las hay) al elegir actividades.
-6. Incluye una sección final de recomendaciones con 3-4 restaurantes concretos (nombre, rango de precio, breve descripción) y varios tips de viajero (cómo evitar colas, qué reservar online, errores típicos de turista).
-7. Todos los precios son estimaciones tuyas, no tienes datos en tiempo real: no inventes una precisión falsa.
-8. IMPORTANTE: todo el texto que escribas (descripciones, cómo llegar, notas, recomendaciones, tips) debe estar en ESPAÑOL, sin importar el idioma del destino.
+4. Para CADA día, en su campo "recommendations": 1-2 restaurantes CERCA de las actividades de ESE día concreto (nombre, zona o calle aproximada, rango de precio) y un "tip" específico de ese día (ej: "reserva online el Coliseo para evitar cola").
+5. La suma total estimada del viaje debe aproximarse al presupuesto indicado (${budget} €); incluye un desglose aproximado en "budgetBreakdown" y una nota si no ha sido posible ajustarse.
+6. Ten en cuenta el grupo (${groupInfo[group].label}), la época del año (${seasonInfo[season].label}) y las preferencias del viajero (si las hay) al elegir actividades.
+7. En "recommendations" del nivel superior (fuera de los días), incluye varios tips GENERALES del destino, no ligados a un día concreto (cómo moverte por la ciudad, errores típicos de turista, qué reservar con antelación).
+8. Todos los precios, horarios y ubicaciones son estimaciones tuyas, no tienes datos en tiempo real: no inventes una precisión falsa. Las direcciones/zonas son especialmente aproximadas.
+9. IMPORTANTE: todo el texto que escribas (descripciones, cómo llegar, notas, recomendaciones, tips) debe estar en ESPAÑOL, sin importar el idioma del destino.
 
 Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional, y siempre en español.`;
 }

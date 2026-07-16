@@ -10,10 +10,25 @@ function renderActivity(icon, label, activity) {
     `;
 }
 
+// Recomendaciones propias de un día: en una sección plegada (<details>) para no saturar la tarjeta.
+function renderDayRecommendations(dayRec) {
+    const restaurantsHtml = dayRec.restaurants
+        .map((r) => `<li><strong>${r.name}</strong>${r.location ? ` — ${r.location}` : ""} (${r.priceRange})</li>`)
+        .join("");
+
+    return `
+        <details class="day-recommendations">
+            <summary>🍽️ Recomendaciones del día</summary>
+            ${restaurantsHtml ? `<ul>${restaurantsHtml}</ul>` : ""}
+            <p class="day-tip">💡 ${dayRec.tip}</p>
+        </details>
+    `;
+}
+
 function renderAIItinerary(destination, days, tripTypes, budget, group, season, accommodation, aiData) {
     let html = `
         <button type="button" class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
-        <p class="ai-disclaimer">⚠️ Precios y horarios estimados por IA (sin datos en tiempo real) — verifica siempre en la web oficial antes de viajar.</p>
+        <p class="ai-disclaimer">⚠️ Precios, horarios y ubicaciones estimados por IA (sin datos en tiempo real) — las direcciones son el dato MENOS fiable, verifica siempre en la web oficial antes de viajar.</p>
         <div class="summary-card">
             <h2>📋 Resumen del viaje</h2>
             <p>📍 <strong>Destino:</strong> ${destination}</p>
@@ -29,24 +44,22 @@ function renderAIItinerary(destination, days, tripTypes, budget, group, season, 
 
     aiData.days.forEach((day, index) => {
         const delay = (index * 0.08).toFixed(2);
+        // Compatibilidad con planes guardados antes de que las recomendaciones pasaran a ser por día.
+        const dayRec = day.recommendations || { restaurants: [], tip: "" };
         html += `
             <div class="day-card" style="animation-delay: ${delay}s">
                 <h3>Día ${day.day}${day.zone ? ` — ${day.zone}` : ""}</h3>
                 ${renderActivity(periodIcons.morning, "Mañana", day.morning)}
                 ${renderActivity(periodIcons.afternoon, "Tarde", day.afternoon)}
                 ${renderActivity(periodIcons.night, "Noche", day.night)}
+                ${renderDayRecommendations(dayRec)}
             </div>
         `;
     });
 
     html += `
         <div class="recommendations-card">
-            <h2>🍴 Recomendaciones</h2>
-            <h3>Restaurantes</h3>
-            <ul>
-                ${aiData.recommendations.restaurants.map((r) => `<li><strong>${r.name}</strong> (${r.priceRange})${r.description ? ` — ${r.description}` : ""}</li>`).join("")}
-            </ul>
-            <h3>Tips de viajero</h3>
+            <h2>🍴 Tips generales del destino</h2>
             <ul>
                 ${aiData.recommendations.tips.map((t) => `<li>${t}</li>`).join("")}
             </ul>

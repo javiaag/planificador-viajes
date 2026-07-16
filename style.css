@@ -211,6 +211,34 @@ body {
     color: var(--color-text);
 }
 
+.day-recommendations {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: rgba(108, 92, 231, 0.08);
+    font-size: 0.9rem;
+}
+
+.day-recommendations summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--color-primary-dark);
+}
+
+.day-recommendations ul {
+    margin: 8px 0 4px 0;
+    padding-left: 20px;
+}
+
+.day-recommendations li {
+    margin: 2px 0;
+}
+
+.day-tip {
+    margin: 6px 0 0 0;
+    color: var(--color-text);
+}
+
 .recommendations-card {
     padding: 18px 22px;
     margin-top: 6px;

@@ -126,6 +126,32 @@ De un `index.html` vacío a una app pública con IA, mapa interactivo y desplieg
 
 ---
 
+## Sesión 5 — V5: la app escucha a sus usuarios
+*Primer feedback real de familia y amigos convertido en cinco mejoras.*
+
+### El backlog del feedback
+Tipos de viaje combinables, refinamiento conversacional del plan, imágenes de los lugares, recomendaciones por día, y distancias/tiempos entre actividades.
+
+### Parte 0 — Refactor preventivo ✅
+Antes de construir nada, Claude Code reorganizó el código en archivos por responsabilidad (script.js se había hecho enorme). Regla profesional aplicada: nunca mezclar refactor y features en el mismo commit — si algo falla después, no sabrías cuál de los dos fue.
+
+### Parte A — Tipos de viaje combinables ✅
+- Checkboxes (1 a 3 tipos) en vez de desplegable, con "playa" como tipo nuevo. Al marcar 3, el resto se deshabilita solo.
+- El prompt pide a Gemini mezclar los tipos "de forma equilibrada, sin dedicar días enteros a un solo tipo".
+- El fallback fusiona los bancos de actividades de los tipos elegidos reutilizando el filtrado de siempre.
+- Detalle fino: los planes guardados con el formato antiguo (un solo tipo) siguen cargando sin romperse — compatibilidad hacia atrás.
+
+### Parte B — Preferencias + refinamiento conversacional ✅ (la joya)
+- Campo libre "¿Algo que debamos saber?" que se inyecta en el prompt de generación.
+- Caja **"Ajustar mi plan"**: escribes "cambia la tarde del día 2 por algo más tranquilo", se envía a Gemini el plan actual completo + la petición, y devuelve el plan modificado con el mismo esquema. Se repinta todo — tarjetas, mapa, PDF — reutilizando el render existente.
+- La función serverless ganó un modo "refine" junto al "generate", con el esquema y los prompts extraídos a un archivo compartido para no duplicar.
+- Robustez: si el ajuste falla, el plan anterior reaparece intacto con un aviso — nunca una pantalla en blanco.
+- Con esto la app dejó de ser un generador y pasó a ser un agente de viajes con el que se conversa.
+
+*(partes C, D y E en curso)*
+
+---
+
 *(próximas sesiones se irán añadiendo aquí)*
 
 ---
