@@ -73,17 +73,20 @@ body {
 }
 
 #trip-form input,
-#trip-form select {
+#trip-form select,
+#trip-form textarea {
     padding: 10px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 1rem;
     font-family: inherit;
     background-color: #fff;
+    resize: vertical;
 }
 
 #trip-form input:focus,
-#trip-form select:focus {
+#trip-form select:focus,
+#trip-form textarea:focus {
     outline: none;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
@@ -251,6 +254,60 @@ body {
     background-color: rgba(255, 255, 255, 0.85);
     color: var(--color-text);
     font-size: 0.9rem;
+}
+
+.refine-card {
+    padding: 18px 22px;
+    margin-bottom: 14px;
+    border: 1px dashed var(--color-primary);
+    border-radius: 14px;
+    background-color: var(--color-bg-card);
+    backdrop-filter: blur(6px);
+    animation: fadeInUp 0.4s ease both;
+}
+
+.refine-card h2 {
+    margin: 0 0 6px 0;
+    color: var(--color-primary-dark);
+}
+
+.refine-hint {
+    margin: 0 0 10px 0;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+}
+
+.refine-card textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.refine-card textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+}
+
+.refine-card button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.refine-card button:hover {
+    transform: scale(1.03);
 }
 
 .print-btn {
@@ -488,7 +545,8 @@ body {
     .fallback-notice,
     .ai-disclaimer,
     .error,
-    .invalid-destination-card {
+    .invalid-destination-card,
+    .refine-card {
         display: none !important;
     }
 

@@ -67,6 +67,9 @@
             <label for="accommodation">¿Dónde te alojas? (opcional):</label>
             <input type="text" id="accommodation" name="accommodation" placeholder="Ej: hotel cerca de la Plaza Mayor">
 
+            <label for="preferences">¿Algo que debamos saber? (opcional):</label>
+            <textarea id="preferences" name="preferences" rows="2" placeholder="Ej: quiero ver sí o sí la Sagrada Familia, odio los museos, viajamos con perro..."></textarea>
+
             <button type="submit">Generar plan ✨</button>
         </form>
 
@@ -86,6 +89,7 @@
     <script src="constants.js"></script>
     <script src="rules.js"></script>
     <script src="gemini.js"></script>
+    <script src="gemini-refine.js"></script>
     <script src="render.js"></script>
     <!-- config.js contiene tu API key personal y NUNCA se sube a Git (ver .gitignore).
          Solo hace falta para desarrollar en local (file://). En producción (Vercel) este

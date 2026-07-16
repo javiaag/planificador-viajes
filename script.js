@@ -66,6 +66,38 @@ function fallbackToRuleBasedPlan(destination, days, tripTypes, budget, group, se
     );
 }
 
+// Engancha la caja "Ajustar mi plan" que renderAIItinerary añade debajo del itinerario.
+// Se debe llamar de nuevo cada vez que se repinta el itinerario, porque innerHTML borra los listeners anteriores.
+function attachRefineHandler(formData, aiData) {
+    const refineBtn = document.getElementById("refine-btn");
+    const refineInput = document.getElementById("refine-input");
+    if (!refineBtn) {
+        return;
+    }
+
+    refineBtn.addEventListener("click", async () => {
+        const refineRequest = refineInput.value.trim();
+        if (!refineRequest) {
+            return;
+        }
+
+        showLoading(); // sustituye todo #itinerary por el spinner, incluida esta misma caja
+
+        try {
+            const refinedData = await callGeminiRefineWithRetry(aiData, refineRequest);
+            renderAIItinerary(formData.destination, formData.days, formData.tripTypes, formData.budget, formData.group, formData.season, formData.accommodation, refinedData);
+        } catch (error) {
+            console.error("Fallo ajustando el plan:", error);
+            // Restauramos el plan anterior (el que había antes de pedir el ajuste) y avisamos del fallo.
+            renderAIItinerary(formData.destination, formData.days, formData.tripTypes, formData.budget, formData.group, formData.season, formData.accommodation, aiData);
+            itineraryDiv.insertAdjacentHTML(
+                "afterbegin",
+                `<p class="error">No se pudo ajustar el plan (${error.message}). Tu plan anterior sigue aquí — prueba de nuevo o reformula la petición.</p>`
+            );
+        }
+    });
+}
+
 form.addEventListener("submit", async function (event) {
     event.preventDefault(); // evita que la página se recargue al enviar el formulario
 
@@ -76,6 +108,7 @@ form.addEventListener("submit", async function (event) {
     const group = document.getElementById("group").value;
     const season = document.getElementById("season").value;
     const accommodation = document.getElementById("accommodation").value.trim();
+    const preferences = document.getElementById("preferences").value.trim();
 
     if (!destination || tripTypes.length === 0 || tripTypes.length > 3 || !group || !season || !days || days < 1 || days > 30 || !budget || budget <= 0) {
         itineraryDiv.innerHTML = `<p class="error">Por favor, completa todos los campos obligatorios (elige entre 1 y 3 tipos de viaje, días entre 1 y 30, presupuesto mayor que 0).</p>`;
@@ -94,7 +127,7 @@ form.addEventListener("submit", async function (event) {
     }
 
     try {
-        const aiData = await callGeminiItineraryWithRetry(destination, days, tripTypes, budget, group, season, accommodation);
+        const aiData = await callGeminiItineraryWithRetry(destination, days, tripTypes, budget, group, season, accommodation, preferences);
         if (aiData.validDestination === false) {
             // el destino no es un lugar real: no tiene sentido caer al generador de reglas (inventaría un plan para él)
             showInvalidDestinationMessage(destination);

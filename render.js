@@ -53,7 +53,17 @@ function renderAIItinerary(destination, days, tripTypes, budget, group, season, 
         </div>
     `;
 
+    html += `
+        <div class="refine-card">
+            <h2>✏️ Ajustar mi plan</h2>
+            <p class="refine-hint">¿Quieres cambiar algo? Descríbelo y la IA ajustará solo esa parte del plan.</p>
+            <textarea id="refine-input" rows="2" placeholder="Ej: cambia la tarde del día 2 por algo más tranquilo"></textarea>
+            <button type="button" id="refine-btn">Ajustar plan</button>
+        </div>
+    `;
+
     itineraryDiv.innerHTML = html;
     renderMap(aiData);
     saveLastPlan({ destination, days, tripTypes, budget, group, season, accommodation }, "ai", aiData);
+    attachRefineHandler({ destination, days, tripTypes, budget, group, season, accommodation }, aiData);
 }
