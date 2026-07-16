@@ -148,7 +148,16 @@ Antes de construir nada, Claude Code reorganizó el código en archivos por resp
 - Robustez: si el ajuste falla, el plan anterior reaparece intacto con un aviso — nunca una pantalla en blanco.
 - Con esto la app dejó de ser un generador y pasó a ser un agente de viajes con el que se conversa.
 
-*(partes C, D y E en curso)*
+### Bug cazado por Javi: los días salían en inglés 🐛
+Entre parte y parte, Javi detectó que a veces los días llegaban en inglés. Diagnóstico: el prompt especificaba formato, campos y contenido... pero nadie le decía a Gemini el *idioma*. Lección doble: (1) a un LLM no se le deja nada implícito — si importa, se dice; (2) los LLMs no son deterministas: el mismo prompt puede fallar solo a veces, y por eso sus bugs son escurridizos. Arreglado con una instrucción explícita de idioma en ambos prompts.
+
+### Parte C — Recomendaciones por día ✅
+- Cada día lleva ahora 1-2 restaurantes cercanos a sus actividades (zona, rango de precio) y un tip específico del día, en una sección plegable dentro de la tarjeta.
+- Truco aprendido: `<details>/<summary>` — HTML nativo que hace secciones plegables sin una línea de JavaScript.
+- La tarjeta general quedó para tips globales del destino. Aviso reforzado: las direcciones son el dato menos fiable de la IA.
+- De nuevo compatibilidad hacia atrás: los planes guardados con el esquema anterior no rompen.
+
+*(partes D y E en curso)*
 
 ---
 

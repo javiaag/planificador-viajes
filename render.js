@@ -50,7 +50,9 @@ function renderAIItinerary(destination, days, tripTypes, budget, group, season, 
             <div class="day-card" style="animation-delay: ${delay}s">
                 <h3>Día ${day.day}${day.zone ? ` — ${day.zone}` : ""}</h3>
                 ${renderActivity(periodIcons.morning, "Mañana", day.morning)}
+                <p class="distance-note">${formatDistanceText(day.morning.lat, day.morning.lng, day.afternoon.lat, day.afternoon.lng)}</p>
                 ${renderActivity(periodIcons.afternoon, "Tarde", day.afternoon)}
+                <p class="distance-note">${formatDistanceText(day.afternoon.lat, day.afternoon.lng, day.night.lat, day.night.lng)}</p>
                 ${renderActivity(periodIcons.night, "Noche", day.night)}
                 ${renderDayRecommendations(dayRec)}
             </div>

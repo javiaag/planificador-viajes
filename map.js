@@ -64,8 +64,13 @@ function renderMap(aiData) {
             allPoints.push(point);
         });
 
-        if (pointsOfThisDay.length > 1) {
-            L.polyline(pointsOfThisDay, { color, weight: 3, opacity: 0.7 }).addTo(dayGroup);
+        // Un tramo (polyline) por cada par de actividades consecutivas, con su distancia/tiempo en el popup.
+        for (let i = 0; i < pointsOfThisDay.length - 1; i++) {
+            const [lat1, lng1] = pointsOfThisDay[i];
+            const [lat2, lng2] = pointsOfThisDay[i + 1];
+            L.polyline([pointsOfThisDay[i], pointsOfThisDay[i + 1]], { color, weight: 3, opacity: 0.7 })
+                .bindPopup(formatDistanceText(lat1, lng1, lat2, lng2))
+                .addTo(dayGroup);
         }
 
         dayGroup.addTo(leafletMap);
