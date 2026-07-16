@@ -114,10 +114,186 @@ const seasonInfo = {
     invierno: { emoji: "❄️", label: "Invierno", note: "frío, abrígate bien y consulta el pronóstico" }
 };
 
+// --- Integración con Gemini (IA) ---
+// Si Google cambia el nombre del modelo, este es el único sitio donde hay que tocarlo.
+const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+// Esquema de una actividad (mañana/tarde/noche comparten la misma forma)
+const activitySchema = {
+    type: "OBJECT",
+    properties: {
+        place: { type: "STRING" },
+        description: { type: "STRING" },
+        estimatedPrice: { type: "STRING" },
+        howToGetThere: { type: "STRING" },
+        lat: { type: "NUMBER" },
+        lng: { type: "NUMBER" }
+    },
+    required: ["place", "description", "estimatedPrice", "howToGetThere", "lat", "lng"]
+};
+
+// Esquema completo del JSON que le pedimos a Gemini (controlled generation)
+const itinerarySchema = {
+    type: "OBJECT",
+    properties: {
+        days: {
+            type: "ARRAY",
+            items: {
+                type: "OBJECT",
+                properties: {
+                    day: { type: "NUMBER" },
+                    zone: { type: "STRING" },
+                    morning: activitySchema,
+                    afternoon: activitySchema,
+                    night: activitySchema
+                },
+                required: ["day", "morning", "afternoon", "night"]
+            }
+        },
+        budgetBreakdown: {
+            type: "OBJECT",
+            properties: {
+                totalEstimated: { type: "NUMBER" },
+                notes: { type: "STRING" }
+            },
+            required: ["totalEstimated"]
+        },
+        recommendations: {
+            type: "OBJECT",
+            properties: {
+                restaurants: {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            name: { type: "STRING" },
+                            priceRange: { type: "STRING" },
+                            description: { type: "STRING" }
+                        },
+                        required: ["name", "priceRange"]
+                    }
+                },
+                tips: {
+                    type: "ARRAY",
+                    items: { type: "STRING" }
+                }
+            },
+            required: ["restaurants", "tips"]
+        }
+    },
+    required: ["days", "budgetBreakdown", "recommendations"]
+};
+
+function buildPrompt(destination, days, tripType, budget, group, season, accommodation) {
+    const accommodationText = accommodation
+        ? `El viajero se aloja en: "${accommodation}". Organiza cada día empezando y terminando cerca de esa zona.`
+        : "El viajero no ha indicado alojamiento: asume una ubicación céntrica en el destino.";
+
+    return `Eres un asistente de viajes experto. Genera un itinerario detallado y REAL (lugares con nombre concreto, nunca genéricos) para este viaje:
+
+- Destino: ${destination}
+- Duración: ${days} días
+- Tipo de viaje: ${tripLabels[tripType]}
+- Presupuesto total por persona: ${budget} €
+- Grupo: ${groupInfo[group].label}
+- Época del año: ${seasonInfo[season].label}
+- ${accommodationText}
+
+Instrucciones:
+1. Para cada día, organiza mañana/tarde/noche con lugares concretos (monumentos, museos, barrios, restaurantes) cercanos entre sí dentro de la misma zona de la ciudad, para minimizar desplazamientos.
+2. Cada actividad debe incluir: nombre del lugar, breve descripción (1 frase), precio estimado de entrada en €, cómo llegar (a pie/metro/bus, indicando desde el alojamiento cuando aplique) y coordenadas lat/lng aproximadas del lugar.
+3. La suma total estimada del viaje debe aproximarse al presupuesto indicado (${budget} €); incluye un desglose aproximado en "budgetBreakdown" y una nota si no ha sido posible ajustarse.
+4. Ten en cuenta el grupo (${groupInfo[group].label}) y la época del año (${seasonInfo[season].label}) al elegir actividades (ritmo, clima).
+5. Incluye una sección final de recomendaciones con 3-4 restaurantes concretos (nombre, rango de precio, breve descripción) y varios tips de viajero (cómo evitar colas, qué reservar online, errores típicos de turista).
+6. Todos los precios son estimaciones tuyas, no tienes datos en tiempo real: no inventes una precisión falsa.
+
+Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional.`;
+}
+
+async function callGeminiItinerary(destination, days, tripType, budget, group, season, accommodation) {
+    const prompt = buildPrompt(destination, days, tripType, budget, group, season, accommodation);
+
+    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: itinerarySchema
+            }
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`Gemini respondió con estado ${response.status}`);
+    }
+
+    const data = await response.json();
+    const rawText = data.candidates[0].content.parts[0].text;
+    return JSON.parse(rawText);
+}
+
+function renderActivity(icon, label, activity) {
+    return `
+        <p>
+            <strong>${icon} ${label}:</strong> ${activity.place} — ${activity.description}<br>
+            <span class="price-note">${activity.estimatedPrice} (estimado, verificar web oficial)</span><br>
+            <span class="how-to">🧭 ${activity.howToGetThere}</span>
+        </p>
+    `;
+}
+
+function renderAIItinerary(destination, days, tripType, budget, group, season, accommodation, aiData) {
+    let html = `
+        <p class="ai-disclaimer">⚠️ Precios y horarios estimados por IA (sin datos en tiempo real) — verifica siempre en la web oficial antes de viajar.</p>
+        <div class="summary-card">
+            <h2>📋 Resumen del viaje</h2>
+            <p>📍 <strong>Destino:</strong> ${destination}</p>
+            <p>📅 <strong>Días:</strong> ${days}</p>
+            <p>${tripIcons[tripType]} <strong>Tipo:</strong> ${tripLabels[tripType]}</p>
+            <p>💶 <strong>Presupuesto:</strong> ${budget} € indicados — estimado por la IA: ~${aiData.budgetBreakdown.totalEstimated} €</p>
+            ${aiData.budgetBreakdown.notes ? `<p class="budget-note">${aiData.budgetBreakdown.notes}</p>` : ""}
+            <p>${groupInfo[group].emoji} <strong>Grupo:</strong> ${groupInfo[group].label} — ${groupInfo[group].pace}</p>
+            <p>${seasonInfo[season].emoji} <strong>Época:</strong> ${seasonInfo[season].label} (${seasonInfo[season].note})</p>
+            <p>🏨 <strong>Alojamiento:</strong> ${accommodation || "Sin especificar (se asume zona céntrica)"}</p>
+        </div>
+    `;
+
+    aiData.days.forEach((day, index) => {
+        const delay = (index * 0.08).toFixed(2);
+        html += `
+            <div class="day-card" style="animation-delay: ${delay}s">
+                <h3>Día ${day.day}${day.zone ? ` — ${day.zone}` : ""}</h3>
+                ${renderActivity(periodIcons.morning, "Mañana", day.morning)}
+                ${renderActivity(periodIcons.afternoon, "Tarde", day.afternoon)}
+                ${renderActivity(periodIcons.night, "Noche", day.night)}
+            </div>
+        `;
+    });
+
+    html += `
+        <div class="recommendations-card">
+            <h2>🍴 Recomendaciones</h2>
+            <h3>Restaurantes</h3>
+            <ul>
+                ${aiData.recommendations.restaurants.map((r) => `<li><strong>${r.name}</strong> (${r.priceRange})${r.description ? ` — ${r.description}` : ""}</li>`).join("")}
+            </ul>
+            <h3>Tips de viajero</h3>
+            <ul>
+                ${aiData.recommendations.tips.map((t) => `<li>${t}</li>`).join("")}
+            </ul>
+        </div>
+    `;
+
+    itineraryDiv.innerHTML = html;
+}
+
 const form = document.getElementById("trip-form");
 const itineraryDiv = document.getElementById("itinerary");
 
-form.addEventListener("submit", function (event) {
+form.addEventListener("submit", async function (event) {
     event.preventDefault(); // evita que la página se recargue al enviar el formulario
 
     const destination = document.getElementById("destination").value.trim();
@@ -133,7 +309,14 @@ form.addEventListener("submit", function (event) {
         return;
     }
 
-    renderItinerary(destination, days, tripType, budget, group, season, accommodation);
+    try {
+        const aiData = await callGeminiItinerary(destination, days, tripType, budget, group, season, accommodation);
+        renderAIItinerary(destination, days, tripType, budget, group, season, accommodation, aiData);
+    } catch (error) {
+        // Nota: en el Paso 4 esto caerá con elegancia al generador de reglas (renderItinerary) en vez de mostrar solo un error.
+        console.error("Error generando itinerario con IA:", error);
+        itineraryDiv.innerHTML = `<p class="error">No se pudo generar el plan con IA (${error.message}).</p>`;
+    }
 });
 
 // Filtra una lista de actividades por presupuesto, grupo y época.

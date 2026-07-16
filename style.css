@@ -167,6 +167,62 @@ body {
     color: var(--color-text);
 }
 
+.recommendations-card {
+    padding: 18px 22px;
+    margin-top: 6px;
+    margin-bottom: 14px;
+    border: 1px solid var(--color-border);
+    border-left: 5px solid var(--color-primary);
+    border-radius: 14px;
+    background-color: var(--color-bg-card);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    animation: fadeInUp 0.4s ease both;
+}
+
+.recommendations-card h2 {
+    margin: 0 0 10px 0;
+    color: var(--color-primary-dark);
+}
+
+.recommendations-card h3 {
+    margin: 14px 0 6px 0;
+    color: var(--color-primary-dark);
+    font-size: 1rem;
+}
+
+.recommendations-card ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.recommendations-card li {
+    margin: 4px 0;
+}
+
+.ai-disclaimer {
+    display: block;
+    text-align: center;
+    margin-bottom: 14px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.85);
+    color: var(--color-text);
+    font-size: 0.9rem;
+}
+
+.price-note,
+.how-to {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+}
+
+.budget-note {
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--color-muted);
+}
+
 .error {
     display: inline-block;
     padding: 12px 16px;
