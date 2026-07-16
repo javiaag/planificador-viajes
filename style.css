@@ -283,13 +283,18 @@ body {
 
 .map-section {
     margin-bottom: 20px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-card);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     animation: fadeInUp 0.4s ease both;
 }
 
 #map {
     height: 350px;
-    border-radius: 14px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    border-radius: 10px;
 }
 
 .day-filters {
@@ -355,5 +360,18 @@ body {
     .day-card,
     .summary-card {
         padding: 14px 16px;
+    }
+
+    .map-section {
+        padding: 12px;
+    }
+
+    #map {
+        height: 250px;
+    }
+
+    .day-filter-btn {
+        padding: 5px 10px;
+        font-size: 0.8rem;
     }
 }

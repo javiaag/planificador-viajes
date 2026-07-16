@@ -116,3 +116,10 @@ function filterMapByDay(selectedDay) {
         leafletMap.fitBounds(L.latLngBounds(visiblePoints), { padding: [30, 30] });
     }
 }
+
+// Leaflet no reajusta el mapa solo cuando cambia el tamaño de la ventana (ej: girar el móvil).
+window.addEventListener("resize", () => {
+    if (leafletMap) {
+        leafletMap.invalidateSize();
+    }
+});
