@@ -290,6 +290,27 @@ function showLoading() {
     `;
 }
 
+// --- Persistencia del último plan (localStorage) ---
+const LAST_PLAN_KEY = "planificadorViajes.lastPlan";
+
+function saveLastPlan(formData, source, aiData) {
+    try {
+        localStorage.setItem(LAST_PLAN_KEY, JSON.stringify({ formData, source, aiData }));
+    } catch (error) {
+        console.warn("No se pudo guardar el plan en localStorage:", error.message);
+    }
+}
+
+function loadLastPlan() {
+    try {
+        const raw = localStorage.getItem(LAST_PLAN_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+        console.warn("No se pudo leer el plan guardado:", error.message);
+        return null;
+    }
+}
+
 function renderActivity(icon, label, activity) {
     return `
         <p>
@@ -302,6 +323,7 @@ function renderActivity(icon, label, activity) {
 
 function renderAIItinerary(destination, days, tripType, budget, group, season, accommodation, aiData) {
     let html = `
+        <button type="button" class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
         <p class="ai-disclaimer">⚠️ Precios y horarios estimados por IA (sin datos en tiempo real) — verifica siempre en la web oficial antes de viajar.</p>
         <div class="summary-card">
             <h2>📋 Resumen del viaje</h2>
@@ -344,6 +366,7 @@ function renderAIItinerary(destination, days, tripType, budget, group, season, a
 
     itineraryDiv.innerHTML = html;
     renderMap(aiData);
+    saveLastPlan({ destination, days, tripType, budget, group, season, accommodation }, "ai", aiData);
 }
 
 const form = document.getElementById("trip-form");
@@ -429,6 +452,7 @@ function renderItinerary(destination, days, tripType, budget, group, season, acc
     };
 
     let html = `
+        <button type="button" class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
         <div class="summary-card">
             <h2>📋 Resumen del viaje</h2>
             <p>📍 <strong>Destino:</strong> ${destination}</p>
@@ -461,4 +485,36 @@ function renderItinerary(destination, days, tripType, budget, group, season, acc
     }
 
     itineraryDiv.innerHTML = html;
+    saveLastPlan({ destination, days, tripType, budget, group, season, accommodation }, "rules", null);
 }
+
+// Si hay un plan guardado de una visita anterior, lo mostramos directamente al abrir la página.
+function restoreLastPlanIfAny() {
+    const saved = loadLastPlan();
+    if (!saved || !saved.formData) {
+        return;
+    }
+
+    const { destination, days, tripType, budget, group, season, accommodation } = saved.formData;
+
+    if (saved.source === "ai" && saved.aiData) {
+        renderAIItinerary(destination, days, tripType, budget, group, season, accommodation, saved.aiData);
+    } else {
+        renderItinerary(destination, days, tripType, budget, group, season, accommodation);
+    }
+
+    itineraryDiv.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="saved-plan-notice">
+            📌 Tu último plan: ${destination}, ${days} días
+            <button type="button" id="start-new-plan-btn">Empezar uno nuevo</button>
+        </div>`
+    );
+
+    document.getElementById("start-new-plan-btn").addEventListener("click", () => {
+        itineraryDiv.innerHTML = "";
+        hideMap();
+    });
+}
+
+restoreLastPlanIfAny();

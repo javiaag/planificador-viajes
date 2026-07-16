@@ -218,6 +218,52 @@ body {
     font-size: 0.9rem;
 }
 
+.print-btn {
+    display: block;
+    margin: 0 auto 14px auto;
+    padding: 10px 20px;
+    border: 2px solid var(--color-primary);
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.85);
+    color: var(--color-primary-dark);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.print-btn:hover {
+    background-color: var(--color-primary);
+    color: #fff;
+    transform: scale(1.03);
+}
+
+.saved-plan-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.85);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.saved-plan-notice button {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 999px;
+    background-color: var(--color-primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
 .loading-card {
     display: flex;
     flex-direction: column;
@@ -373,5 +419,54 @@ body {
     .day-filter-btn {
         padding: 5px 10px;
         font-size: 0.8rem;
+    }
+}
+
+/* Impresión / Guardar como PDF: solo resumen, días y recomendaciones, en blanco y negro */
+@media print {
+    @page {
+        size: A4;
+        margin: 1.5cm;
+    }
+
+    body {
+        background: #fff;
+        padding: 0;
+    }
+
+    .hero .subtitle,
+    #trip-form,
+    .map-section,
+    .print-btn,
+    .saved-plan-notice,
+    .fallback-notice,
+    .ai-disclaimer,
+    .error {
+        display: none !important;
+    }
+
+    .hero h1 {
+        color: #000;
+        text-shadow: none;
+    }
+
+    .summary-card,
+    .day-card,
+    .recommendations-card {
+        background: #fff;
+        backdrop-filter: none;
+        box-shadow: none;
+        border: 1px solid #999;
+        break-inside: avoid;
+    }
+
+    .summary-card h2,
+    .summary-card p,
+    .day-card h3,
+    .day-card p,
+    .recommendations-card h2,
+    .recommendations-card h3,
+    .recommendations-card li {
+        color: #000 !important;
     }
 }
