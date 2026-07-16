@@ -1,8 +1,103 @@
-/* Estilos mínimos para empezar — los mejoraremos al final de la V1 */
+/* Estilos del planificador de viajes */
+
+:root {
+    --color-primary: #2563eb;
+    --color-primary-dark: #1d4ed8;
+    --color-text: #1f2937;
+    --color-muted: #6b7280;
+    --color-border: #d1d5db;
+    --color-bg-card: #f9fafb;
+    --color-error: #dc2626;
+}
 
 body {
     font-family: system-ui, sans-serif; /* fuente del sistema, se ve bien en cualquier equipo */
     max-width: 700px;                   /* limita el ancho para que se lea cómodo */
     margin: 0 auto;                     /* centra el contenido en la pantalla */
     padding: 20px;
+    color: var(--color-text);
+    background-color: #fff;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* Formulario: los campos van uno debajo de otro con espacio entre ellos */
+#trip-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background-color: var(--color-bg-card);
+    margin-bottom: 30px;
+}
+
+#trip-form label {
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+#trip-form input,
+#trip-form select {
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+#trip-form input:focus,
+#trip-form select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+#trip-form button {
+    margin-top: 16px;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--color-primary);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+#trip-form button:hover {
+    background-color: var(--color-primary-dark);
+}
+
+/* Itinerario generado */
+#itinerary h2 {
+    margin-bottom: 16px;
+}
+
+.day-card {
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background-color: var(--color-bg-card);
+}
+
+.day-card h3 {
+    margin: 0 0 8px 0;
+    color: var(--color-primary-dark);
+}
+
+.day-card p {
+    margin: 4px 0;
+    color: var(--color-text);
+}
+
+.error {
+    color: var(--color-error);
+    font-weight: 600;
 }
