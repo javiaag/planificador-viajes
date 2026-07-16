@@ -2,6 +2,8 @@
 
 Web que genera un itinerario de viaje día a día a partir de destino, duración, tipo de viaje, presupuesto, grupo, época del año y alojamiento. Usa la IA de Gemini para itinerarios reales y detallados, con un generador de reglas propio como plan de respaldo si la IA falla.
 
+🌐 **Demo pública:** https://planificador-viajes-chi.vercel.app
+
 ## Arquitectura
 
 - `index.html`, `style.css`, `script.js`, `map.js` — el frontend (estructura, aspecto, lógica del itinerario, lógica del mapa).
@@ -27,7 +29,7 @@ Web que genera un itinerario de viaje día a día a partir de destino, duración
 - [x] V2: integración con Gemini para itinerarios reales (lugares concretos, precios, coordenadas, recomendaciones), con spinner de carga y fallback automático al generador de reglas
 - [x] V3: mapa interactivo (Leaflet + OpenStreetMap) con marcadores numerados por franja, color por día, popups, rutas y filtros — solo visible cuando el plan viene de la IA
 - [x] V3.5: pulido pre-publicación — persistencia del último plan (localStorage), botón de imprimir/PDF, detección de destinos inválidos, favicon y meta tags
-- [ ] V4: publicación online en Vercel con la API key protegida en el servidor (código listo, pendiente de desplegar)
+- [x] V4: publicada en Vercel con la API key protegida en el servidor — https://planificador-viajes-chi.vercel.app
 
 ## Qué estoy aprendiendo
 - Estructura de una web: HTML (contenido), CSS (aspecto), JS (lógica)
@@ -42,3 +44,4 @@ Web que genera un itinerario de viaje día a día a partir de destino, duración
 - `localStorage` para persistir datos en el navegador entre visitas, y `@media print` para dar a una misma página dos aspectos distintos (pantalla vs papel)
 - Por qué una API key nunca debe vivir en código que corre en el navegador: cualquiera puede abrir las herramientas de desarrollador y verla. La solución es una función serverless que hace de intermediaria, guardando la key como variable de entorno en el servidor
 - Detectar el entorno de ejecución (`window.location.protocol`) para que el mismo código sirva tanto para desarrollo local como para producción
+- Desplegar de verdad: GitHub como origen del código, Vercel como hosting + variables de entorno, y cómo verificar en las herramientas de desarrollador (pestaña Network) que una key protegida en el servidor nunca aparece en ninguna petición del navegador

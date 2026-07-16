@@ -107,8 +107,22 @@ Persistencia del plan, impresión limpia en PDF, destinos inválidos controlados
 - El resto del flujo (reintentos, validación, fallback a reglas) quedó idéntico — sin duplicar lógica.
 - Concepto clave: **variables de entorno** — los secretos no viven en archivos del código, viven en la configuración de cada entorno. El mecanismo estándar de la industria.
 
-### Pendiente
-- Acto 2: repo en GitHub → importar en Vercel → variable de entorno → desplegar → verificar con F12 que la key no viaja al cliente. La URL pública está a un paso.
+### Acto 2 — El despliegue ✅ 🚀
+*El día que la app salió de un ordenador y entró en internet.*
+
+- **GitHub**: repo público `javiaag/planificador-viajes` creado, primer `git push` con autorización desde el navegador. Comprobación satisfactoria: `config.js` NO está en el repo — el `.gitignore` cumplió.
+- **Sorpresa por el camino**: al entrar en Vercel, ya existía una cuenta... con el `predictor-mundial` dentro. La primera app de Javi y esta van a vivir juntas.
+- **Lección de seguridad en vivo**: la key apareció visible en un pantallazo compartido durante el proceso → rotación inmediata (borrar key vieja, crear nueva). Regla grabada a fuego: antes de capturar pantalla, cerrar la pestaña de config.js.
+- **Despliegue**: importar repo en Vercel → variable de entorno `GEMINI_API_KEY` (la nueva) → Deploy → confeti. URL pública: `planificador-viajes-chi.vercel.app`.
+
+### Los exámenes de graduación ✅
+1. Plan real generado en la URL pública con IA y mapa — funciona.
+2. Destino inventado — mensaje amable, sin plan alucinado.
+3. **El examen de seguridad**: F12 → Network → la petición a `/api/generate-itinerary` lleva destino, días y presupuesto... y ni rastro de la key. Bonus poético: el 404 de `config.js` en la consola es la *prueba* de que el archivo de la key no existe en internet.
+4. La app funcionando en el móvil, compartible por WhatsApp con su tarjeta y su favicon ✈️.
+
+### 🏁 V4 COMPLETA — EL PROYECTO ESTÁ VIVO EN INTERNET
+De un `index.html` vacío a una app pública con IA, mapa interactivo y despliegue continuo: cada `git push` futuro actualizará la web automáticamente para todos sus usuarios. El backlog (enlaces a Google Maps, regenerar día, compartir por enlace, idiomas) queda esperando al feedback de los primeros usuarios reales: la familia.
 
 ---
 
