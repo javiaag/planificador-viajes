@@ -10,7 +10,8 @@ Web que genera un itinerario de viaje día a día a partir de destino, duración
 - [x] V1: formulario + itinerario generado con reglas
 - [x] V1.5: rediseño visual (degradado, animaciones, responsive) + presupuesto/grupo/época influyendo de verdad en el plan
 - [x] V2: integración con Gemini para itinerarios reales (lugares concretos, precios, coordenadas, recomendaciones), con spinner de carga y fallback automático al generador de reglas
-- [ ] V3: mapa con las coordenadas lat/lng que ya genera la IA
+- [x] V3: mapa interactivo (Leaflet + OpenStreetMap) con marcadores numerados por franja, color por día, popups, rutas y filtros — solo visible cuando el plan viene de la IA
+- [ ] V4: publicación online (Vercel) con la API key protegida en el servidor
 
 ## Qué estoy aprendiendo
 - Estructura de una web: HTML (contenido), CSS (aspecto), JS (lógica)
@@ -20,3 +21,5 @@ Web que genera un itinerario de viaje día a día a partir de destino, duración
 - Pedirle a una IA JSON estructurado y fiable (`responseSchema`) en vez de texto libre
 - Por qué toda integración con una API externa necesita un "modo degradado" (graceful degradation): la IA puede fallar por cuota, por modelo descontinuado o por key inválida, y la app debe seguir siendo usable
 - Distinguir códigos de error HTTP (401 no autorizado, 404 no encontrado, 429 límite de cuota, 503 servicio no disponible)
+- Dividir el código en varios archivos (`map.js` aparte de `script.js`) cuando uno se hace demasiado grande
+- Integrar un mapa (Leaflet): capas (`layerGroup`) para agrupar marcadores y rutas, y por qué hay que llamar a `invalidateSize()` si el contenedor cambia de tamaño
