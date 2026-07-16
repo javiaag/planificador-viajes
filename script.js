@@ -281,6 +281,7 @@ async function callGeminiItineraryWithRetry(destination, days, tripType, budget,
 }
 
 function showLoading() {
+    hideMap(); // por si quedaba el mapa de una búsqueda anterior visible
     itineraryDiv.innerHTML = `
         <div class="loading-card">
             <div class="spinner"></div>
@@ -342,6 +343,7 @@ function renderAIItinerary(destination, days, tripType, budget, group, season, a
     `;
 
     itineraryDiv.innerHTML = html;
+    renderMap(aiData);
 }
 
 const form = document.getElementById("trip-form");
@@ -350,6 +352,7 @@ const itineraryDiv = document.getElementById("itinerary");
 const submitButton = form.querySelector("button[type=submit]");
 
 function fallbackToRuleBasedPlan(destination, days, tripType, budget, group, season, accommodation, reason) {
+    hideMap(); // el generador de reglas no tiene coordenadas reales, así que no hay mapa que mostrar
     renderItinerary(destination, days, tripType, budget, group, season, accommodation);
     itineraryDiv.insertAdjacentHTML(
         "afterbegin",

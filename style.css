@@ -281,6 +281,32 @@ body {
     font-weight: 600;
 }
 
+.map-section {
+    margin-bottom: 20px;
+    animation: fadeInUp 0.4s ease both;
+}
+
+#map {
+    height: 350px;
+    border-radius: 14px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Icono numerado del marcador (color inline por día, ver map.js) */
+.day-marker {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
