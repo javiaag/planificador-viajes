@@ -1,0 +1,208 @@
+// Integración con Gemini (IA): esquema, prompt, llamadas y validación.
+
+// Si Google cambia el nombre del modelo, este es el único sitio donde hay que tocarlo.
+const GEMINI_MODEL = "gemini-3.1-flash-lite";
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+// Esquema de una actividad (mañana/tarde/noche comparten la misma forma)
+const activitySchema = {
+    type: "OBJECT",
+    properties: {
+        place: { type: "STRING" },
+        description: { type: "STRING" },
+        estimatedPrice: { type: "STRING" },
+        howToGetThere: { type: "STRING" },
+        lat: { type: "NUMBER" },
+        lng: { type: "NUMBER" }
+    },
+    required: ["place", "description", "estimatedPrice", "howToGetThere", "lat", "lng"]
+};
+
+// Esquema completo del JSON que le pedimos a Gemini (controlled generation)
+const itinerarySchema = {
+    type: "OBJECT",
+    properties: {
+        validDestination: { type: "BOOLEAN" },
+        days: {
+            type: "ARRAY",
+            items: {
+                type: "OBJECT",
+                properties: {
+                    day: { type: "NUMBER" },
+                    zone: { type: "STRING" },
+                    morning: activitySchema,
+                    afternoon: activitySchema,
+                    night: activitySchema
+                },
+                required: ["day", "morning", "afternoon", "night"]
+            }
+        },
+        budgetBreakdown: {
+            type: "OBJECT",
+            properties: {
+                totalEstimated: { type: "NUMBER" },
+                notes: { type: "STRING" }
+            },
+            required: ["totalEstimated"]
+        },
+        recommendations: {
+            type: "OBJECT",
+            properties: {
+                restaurants: {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            name: { type: "STRING" },
+                            priceRange: { type: "STRING" },
+                            description: { type: "STRING" }
+                        },
+                        required: ["name", "priceRange"]
+                    }
+                },
+                tips: {
+                    type: "ARRAY",
+                    items: { type: "STRING" }
+                }
+            },
+            required: ["restaurants", "tips"]
+        }
+    },
+    // Solo "validDestination" es obligatorio: si el destino no es válido, el resto puede faltar.
+    required: ["validDestination"]
+};
+
+function buildPrompt(destination, days, tripType, budget, group, season, accommodation) {
+    const accommodationText = accommodation
+        ? `El viajero se aloja en: "${accommodation}". Organiza cada día empezando y terminando cerca de esa zona.`
+        : "El viajero no ha indicado alojamiento: asume una ubicación céntrica en el destino.";
+
+    return `Eres un asistente de viajes experto. Genera un itinerario detallado y REAL (lugares con nombre concreto, nunca genéricos) para este viaje:
+
+- Destino: ${destination}
+- Duración: ${days} días
+- Tipo de viaje: ${tripLabels[tripType]}
+- Presupuesto total por persona: ${budget} €
+- Grupo: ${groupInfo[group].label}
+- Época del año: ${seasonInfo[season].label}
+- ${accommodationText}
+
+PRIMERO comprueba si "${destination}" es un lugar real y visitable (ciudad, región, país o zona identificable). Si NO lo es (inventado, sin sentido, ofensivo, o no se puede identificar como lugar), responde ÚNICAMENTE con {"validDestination": false} y nada más — no generes días ni recomendaciones. Si SÍ es un lugar real, responde con "validDestination": true y continúa con estas instrucciones:
+
+1. Para cada día, organiza mañana/tarde/noche con lugares concretos (monumentos, museos, barrios, restaurantes) cercanos entre sí dentro de la misma zona de la ciudad, para minimizar desplazamientos.
+2. Cada actividad debe incluir: nombre del lugar, breve descripción (1 frase), precio estimado de entrada en €, cómo llegar (a pie/metro/bus, indicando desde el alojamiento cuando aplique) y coordenadas lat/lng aproximadas del lugar.
+3. La suma total estimada del viaje debe aproximarse al presupuesto indicado (${budget} €); incluye un desglose aproximado en "budgetBreakdown" y una nota si no ha sido posible ajustarse.
+4. Ten en cuenta el grupo (${groupInfo[group].label}) y la época del año (${seasonInfo[season].label}) al elegir actividades (ritmo, clima).
+5. Incluye una sección final de recomendaciones con 3-4 restaurantes concretos (nombre, rango de precio, breve descripción) y varios tips de viajero (cómo evitar colas, qué reservar online, errores típicos de turista).
+6. Todos los precios son estimaciones tuyas, no tienes datos en tiempo real: no inventes una precisión falsa.
+
+Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional.`;
+}
+
+// Detecta si la página se abrió con doble clic (file://) o servida desde un servidor web (http/https).
+// En local llamamos a Gemini directamente con la key de config.js; en producción, vía nuestra función serverless.
+const isLocalFile = window.location.protocol === "file:";
+
+// Desarrollo local: llama a Gemini directamente desde el navegador (necesita config.js con tu key).
+async function callGeminiDirectly(destination, days, tripType, budget, group, season, accommodation) {
+    const prompt = buildPrompt(destination, days, tripType, budget, group, season, accommodation);
+
+    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: itinerarySchema
+            }
+        })
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("Respuesta de error completa de Gemini:", errorBody);
+        throw new Error(`Gemini respondió con estado ${response.status}`);
+    }
+
+    const data = await response.json();
+    const rawText = data.candidates[0].content.parts[0].text;
+    return JSON.parse(rawText);
+}
+
+// Producción: la key vive en el servidor (Vercel), el navegador solo llama a nuestra propia API.
+async function callGeminiViaApi(destination, days, tripType, budget, group, season, accommodation) {
+    const response = await fetch("/api/generate-itinerary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ destination, days, tripType, budget, group, season, accommodation })
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("Respuesta de error completa del servidor:", errorBody);
+        throw new Error(`El servidor respondió con estado ${response.status}`);
+    }
+
+    return response.json();
+}
+
+function callGeminiItinerary(destination, days, tripType, budget, group, season, accommodation) {
+    if (isLocalFile) {
+        return callGeminiDirectly(destination, days, tripType, budget, group, season, accommodation);
+    }
+    return callGeminiViaApi(destination, days, tripType, budget, group, season, accommodation);
+}
+
+// En local, comprueba que config.js se cargó y que la key no es el placeholder de la plantilla.
+// En producción no hace falta: la key la gestiona el servidor, y si algo falla ya lo cubre el fallback.
+function isGeminiConfigured() {
+    if (!isLocalFile) {
+        return true;
+    }
+    return typeof GEMINI_API_KEY !== "undefined" && GEMINI_API_KEY && GEMINI_API_KEY !== "TU_API_KEY_AQUI";
+}
+
+// Comprueba que el JSON de la IA tiene la forma mínima que necesitamos para pintarlo sin romper la página.
+function validateItineraryData(data) {
+    if (!data || typeof data.validDestination !== "boolean") {
+        throw new Error("el JSON no trae el campo validDestination");
+    }
+    if (data.validDestination === false) {
+        return; // destino inválido: es una respuesta legítima, no hay más que comprobar
+    }
+    if (!Array.isArray(data.days) || data.days.length === 0) {
+        throw new Error("el JSON no trae un array de días válido");
+    }
+    const requiredFields = ["place", "description", "estimatedPrice", "howToGetThere", "lat", "lng"];
+    for (const day of data.days) {
+        for (const period of ["morning", "afternoon", "night"]) {
+            const activity = day[period];
+            if (!activity || requiredFields.some((field) => activity[field] === undefined)) {
+                throw new Error(`el día ${day.day} tiene datos incompletos en "${period}"`);
+            }
+        }
+    }
+    if (!data.budgetBreakdown || typeof data.budgetBreakdown.totalEstimated !== "number") {
+        throw new Error("falta el desglose de presupuesto");
+    }
+    if (!data.recommendations || !Array.isArray(data.recommendations.restaurants) || !Array.isArray(data.recommendations.tips)) {
+        throw new Error("faltan las recomendaciones");
+    }
+}
+
+// Llama a Gemini y valida el resultado; si falla o el JSON viene mal formado, reintenta una vez más.
+async function callGeminiItineraryWithRetry(destination, days, tripType, budget, group, season, accommodation) {
+    let lastError;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+            const data = await callGeminiItinerary(destination, days, tripType, budget, group, season, accommodation);
+            validateItineraryData(data);
+            return data;
+        } catch (error) {
+            lastError = error;
+            console.warn(`Intento ${attempt} fallido (${error.message}).`);
+        }
+    }
+    throw lastError;
+}
