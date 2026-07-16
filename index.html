@@ -32,13 +32,8 @@
                 <option value="gastronomico">Gastronómico</option>
             </select>
 
-            <label for="budget">Presupuesto:</label>
-            <select id="budget" name="budget" required>
-                <option value="">-- Selecciona --</option>
-                <option value="bajo">Bajo</option>
-                <option value="medio">Medio</option>
-                <option value="alto">Alto</option>
-            </select>
+            <label for="budget">Presupuesto total por persona (€):</label>
+            <input type="number" id="budget" name="budget" min="1" placeholder="Ej: 500" required>
 
             <label for="group">Tipo de grupo:</label>
             <select id="group" name="group" required>
@@ -56,6 +51,9 @@
                 <option value="otono">Otoño</option>
                 <option value="invierno">Invierno</option>
             </select>
+
+            <label for="accommodation">¿Dónde te alojas? (opcional):</label>
+            <input type="text" id="accommodation" name="accommodation" placeholder="Ej: hotel cerca de la Plaza Mayor">
 
             <button type="submit">Generar plan ✨</button>
         </form>

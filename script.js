@@ -92,11 +92,14 @@ const tripIcons = { cultural: "🏛️", naturaleza: "🌿", fiesta: "🎉", gas
 const tripLabels = { cultural: "Cultural", naturaleza: "Naturaleza", fiesta: "Fiesta", gastronomico: "Gastronómico" };
 const costSymbols = ["€", "€€", "€€€"];
 
-const budgetInfo = {
-    bajo: { label: "Bajo", level: 1 },
-    medio: { label: "Medio", level: 2 },
-    alto: { label: "Alto", level: 3 }
-};
+// Traduce el presupuesto total en € a un nivel 1/2/3 (usado por el generador de reglas).
+// Es una aproximación simple: reparte el presupuesto entre días y franjas del día.
+function estimateBudgetLevel(totalBudget, days) {
+    const perActivity = totalBudget / days / 3;
+    if (perActivity < 15) return 1;
+    if (perActivity < 40) return 2;
+    return 3;
+}
 
 const groupInfo = {
     jovenes: { emoji: "🎒", label: "Jóvenes", pace: "Ritmo intenso: aprovechad cada hora del día" },
@@ -120,16 +123,17 @@ form.addEventListener("submit", function (event) {
     const destination = document.getElementById("destination").value.trim();
     const days = parseInt(document.getElementById("days").value, 10);
     const tripType = document.getElementById("trip-type").value;
-    const budget = document.getElementById("budget").value;
+    const budget = parseFloat(document.getElementById("budget").value);
     const group = document.getElementById("group").value;
     const season = document.getElementById("season").value;
+    const accommodation = document.getElementById("accommodation").value.trim();
 
-    if (!destination || !tripType || !budget || !group || !season || !days || days < 1 || days > 30) {
-        itineraryDiv.innerHTML = `<p class="error">Por favor, completa todos los campos (días entre 1 y 30).</p>`;
+    if (!destination || !tripType || !group || !season || !days || days < 1 || days > 30 || !budget || budget <= 0) {
+        itineraryDiv.innerHTML = `<p class="error">Por favor, completa todos los campos obligatorios (días entre 1 y 30, presupuesto mayor que 0).</p>`;
         return;
     }
 
-    renderItinerary(destination, days, tripType, budget, group, season);
+    renderItinerary(destination, days, tripType, budget, group, season, accommodation);
 });
 
 // Filtra una lista de actividades por presupuesto, grupo y época.
@@ -149,9 +153,10 @@ function filterActivities(list, budgetLevel, group, season) {
     return filtered;
 }
 
-function renderItinerary(destination, days, tripType, budget, group, season) {
+function renderItinerary(destination, days, tripType, budget, group, season, accommodation) {
     const plan = activities[tripType];
-    const budgetLevel = budgetInfo[budget].level;
+    const budgetLevel = estimateBudgetLevel(budget, days);
+    const perDay = (budget / days).toFixed(0);
 
     // los pools se calculan una vez: no dependen del día, solo del presupuesto/grupo/época
     const pools = {
@@ -166,9 +171,10 @@ function renderItinerary(destination, days, tripType, budget, group, season) {
             <p>📍 <strong>Destino:</strong> ${destination}</p>
             <p>📅 <strong>Días:</strong> ${days}</p>
             <p>${tripIcons[tripType]} <strong>Tipo:</strong> ${tripLabels[tripType]}</p>
-            <p>💶 <strong>Presupuesto:</strong> ${budgetInfo[budget].label}</p>
+            <p>💶 <strong>Presupuesto:</strong> ${budget} € por persona (~${perDay} €/día)</p>
             <p>${groupInfo[group].emoji} <strong>Grupo:</strong> ${groupInfo[group].label} — ${groupInfo[group].pace}</p>
             <p>${seasonInfo[season].emoji} <strong>Época:</strong> ${seasonInfo[season].label} (${seasonInfo[season].note})</p>
+            <p>🏨 <strong>Alojamiento:</strong> ${accommodation || "Sin especificar (se asume zona céntrica)"}</p>
         </div>
     `;
 
