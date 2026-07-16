@@ -9,30 +9,35 @@
 </head>
 <body>
     <!-- body: todo lo que SÍ se ve en pantalla -->
-    <h1>Planificador de Viajes</h1>
+    <div class="page">
+        <header class="hero">
+            <h1>✈️ Planificador de Viajes</h1>
+            <p class="subtitle">Dinos a dónde vas y te armamos el itinerario perfecto en segundos</p>
+        </header>
 
-    <!-- Formulario para recoger los datos del viaje -->
-    <form id="trip-form">
-        <label for="destination">Destino:</label>
-        <input type="text" id="destination" name="destination" placeholder="Ej: Roma" required>
+        <!-- Formulario para recoger los datos del viaje -->
+        <form id="trip-form">
+            <label for="destination">Destino:</label>
+            <input type="text" id="destination" name="destination" placeholder="Ej: Roma" required>
 
-        <label for="days">Días:</label>
-        <input type="number" id="days" name="days" min="1" max="30" required>
+            <label for="days">Días:</label>
+            <input type="number" id="days" name="days" min="1" max="30" required>
 
-        <label for="trip-type">Tipo de viaje:</label>
-        <select id="trip-type" name="trip-type" required>
-            <option value="">-- Selecciona --</option>
-            <option value="cultural">Cultural</option>
-            <option value="naturaleza">Naturaleza</option>
-            <option value="fiesta">Fiesta</option>
-            <option value="gastronomico">Gastronómico</option>
-        </select>
+            <label for="trip-type">Tipo de viaje:</label>
+            <select id="trip-type" name="trip-type" required>
+                <option value="">-- Selecciona --</option>
+                <option value="cultural">Cultural</option>
+                <option value="naturaleza">Naturaleza</option>
+                <option value="fiesta">Fiesta</option>
+                <option value="gastronomico">Gastronómico</option>
+            </select>
 
-        <button type="submit">Generar plan</button>
-    </form>
+            <button type="submit">Generar plan ✨</button>
+        </form>
 
-    <!-- Aquí aparecerá el itinerario generado (vacío por ahora) -->
-    <div id="itinerary"></div>
+        <!-- Aquí aparecerá el itinerario generado (vacío por ahora) -->
+        <div id="itinerary"></div>
+    </div>
 
     <script src="script.js"></script>
 </body>

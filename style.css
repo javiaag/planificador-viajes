@@ -1,27 +1,55 @@
 /* Estilos del planificador de viajes */
 
 :root {
-    --color-primary: #2563eb;
-    --color-primary-dark: #1d4ed8;
-    --color-text: #1f2937;
+    --color-primary: #6c5ce7;
+    --color-primary-dark: #5849c2;
+    --color-accent: #ff7675;
+    --color-text: #2d2d3a;
     --color-muted: #6b7280;
-    --color-border: #d1d5db;
-    --color-bg-card: #f9fafb;
-    --color-error: #dc2626;
+    --color-border: rgba(255, 255, 255, 0.4);
+    --color-bg-card: rgba(255, 255, 255, 0.85);
+    --color-error: #d63031;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 body {
     font-family: system-ui, sans-serif; /* fuente del sistema, se ve bien en cualquier equipo */
-    max-width: 700px;                   /* limita el ancho para que se lea cómodo */
-    margin: 0 auto;                     /* centra el contenido en la pantalla */
+    margin: 0;
     padding: 20px;
     color: var(--color-text);
-    background-color: #fff;
+    min-height: 100vh;
+    /* degradado de fondo tipo "app de viajes", cubre toda la pantalla y no se corta al hacer scroll */
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 45%, #fd79a8 100%);
+    background-attachment: fixed;
 }
 
-h1 {
+.page {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+/* Cabecera: título grande y llamativo + subtítulo */
+.hero {
     text-align: center;
     margin-bottom: 30px;
+    padding-top: 20px;
+    animation: fadeInUp 0.5s ease both;
+}
+
+.hero h1 {
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    margin: 0 0 8px 0;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.hero .subtitle {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    color: rgba(255, 255, 255, 0.92);
+    margin: 0;
 }
 
 /* Formulario: los campos van uno debajo de otro con espacio entre ellos */
@@ -29,11 +57,14 @@ h1 {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding: 20px;
+    padding: 24px;
     border: 1px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: 16px;
     background-color: var(--color-bg-card);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     margin-bottom: 30px;
+    animation: fadeInUp 0.5s ease 0.1s both;
 }
 
 #trip-form label {
@@ -44,47 +75,65 @@ h1 {
 #trip-form input,
 #trip-form select {
     padding: 10px;
-    border: 1px solid var(--color-border);
+    border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 1rem;
     font-family: inherit;
+    background-color: #fff;
 }
 
 #trip-form input:focus,
 #trip-form select:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
 }
 
 #trip-form button {
-    margin-top: 16px;
-    padding: 12px;
+    margin-top: 18px;
+    padding: 14px;
     border: none;
-    border-radius: 8px;
-    background-color: var(--color-primary);
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     color: #fff;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: background-color 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 #trip-form button:hover {
-    background-color: var(--color-primary-dark);
+    transform: scale(1.02);
+    box-shadow: 0 6px 18px rgba(108, 92, 231, 0.45);
+}
+
+#trip-form button:active {
+    transform: scale(0.98);
 }
 
 /* Itinerario generado */
 #itinerary h2 {
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     margin-bottom: 16px;
 }
 
 .day-card {
-    padding: 16px 20px;
+    padding: 18px 22px;
     margin-bottom: 14px;
     border: 1px solid var(--color-border);
-    border-radius: 12px;
+    border-radius: 14px;
     background-color: var(--color-bg-card);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    opacity: 0;
+    animation: fadeInUp 0.4s ease forwards;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.day-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
 }
 
 .day-card h3 {
@@ -98,6 +147,36 @@ h1 {
 }
 
 .error {
+    display: inline-block;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
     color: var(--color-error);
     font-weight: 600;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive: pantallas pequeñas (móvil) */
+@media (max-width: 600px) {
+    body {
+        padding: 12px;
+    }
+
+    #trip-form {
+        padding: 16px;
+    }
+
+    .day-card {
+        padding: 14px 16px;
+    }
 }

@@ -24,6 +24,10 @@ const activities = {
     }
 };
 
+// Emojis para dar vida al itinerario: por franja del día y por tipo de viaje
+const periodIcons = { morning: "🌅", afternoon: "☀️", night: "🌙" };
+const tripIcons = { cultural: "🏛️", naturaleza: "🌿", fiesta: "🎉", gastronomico: "🍽️" };
+
 const form = document.getElementById("trip-form");
 const itineraryDiv = document.getElementById("itinerary");
 
@@ -44,7 +48,7 @@ form.addEventListener("submit", function (event) {
 
 function renderItinerary(destination, days, tripType) {
     const plan = activities[tripType];
-    let html = `<h2>Itinerario para ${destination} (${days} días)</h2>`;
+    let html = `<h2>${tripIcons[tripType]} Itinerario para ${destination} (${days} días)</h2>`;
 
     for (let day = 1; day <= days; day++) {
         // el módulo (%) hace que las actividades se repitan en ciclo si el viaje es largo
@@ -52,12 +56,15 @@ function renderItinerary(destination, days, tripType) {
         const afternoon = plan.afternoon[(day - 1) % plan.afternoon.length];
         const night = plan.night[(day - 1) % plan.night.length];
 
+        // animation-delay escalonado para que las tarjetas aparezcan una detrás de otra
+        const delay = ((day - 1) * 0.08).toFixed(2);
+
         html += `
-            <div class="day-card">
+            <div class="day-card" style="animation-delay: ${delay}s">
                 <h3>Día ${day}</h3>
-                <p><strong>Mañana:</strong> ${morning}</p>
-                <p><strong>Tarde:</strong> ${afternoon}</p>
-                <p><strong>Noche:</strong> ${night}</p>
+                <p><strong>${periodIcons.morning} Mañana:</strong> ${morning}</p>
+                <p><strong>${periodIcons.afternoon} Tarde:</strong> ${afternoon}</p>
+                <p><strong>${periodIcons.night} Noche:</strong> ${night}</p>
             </div>
         `;
     }
