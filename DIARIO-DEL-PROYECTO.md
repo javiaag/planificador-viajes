@@ -96,8 +96,19 @@ Con la V3 cerrada, paramos a mirar la app con ojos de usuario. Diagnóstico: (1)
 ### ✅ V3.5 completa
 Persistencia del plan, impresión limpia en PDF, destinos inválidos controlados y carta de presentación lista. La app está preparada para salir al mundo.
 
+---
+
+## Sesión 4 — V4: la publicación
+*El último gran hito: que la app viva en internet con la key a salvo.*
+
+### Acto 1 — Reestructurar para el servidor ✅
+- Nueva función serverless `api/generate-itinerary.js`: recibe los datos del formulario por POST, construye el prompt y llama a Gemini **desde el servidor**, leyendo la key de la variable de entorno `GEMINI_API_KEY`. La key nunca viaja al navegador.
+- **Detección de entorno** en el frontend: si la página se abre como archivo local (`file://`), funciona como siempre con `config.js`; si se sirve desde Vercel (`https://`), llama a `/api/generate-itinerary` sin necesitar key alguna. El mismo código sirve para desarrollo y producción.
+- El resto del flujo (reintentos, validación, fallback a reglas) quedó idéntico — sin duplicar lógica.
+- Concepto clave: **variables de entorno** — los secretos no viven en archivos del código, viven en la configuración de cada entorno. El mecanismo estándar de la industria.
+
 ### Pendiente
-- Publicación online (GitHub + Vercel) con la API key protegida en el servidor — el último gran hito.
+- Acto 2: repo en GitHub → importar en Vercel → variable de entorno → desplegar → verificar con F12 que la key no viaja al cliente. La URL pública está a un paso.
 
 ---
 
