@@ -179,6 +179,20 @@ body {
     color: var(--color-primary-dark);
 }
 
+/* Imagen de cabecera del destino (Wikipedia): si no hay, :empty la colapsa sin dejar hueco */
+.destination-image:empty {
+    display: none;
+}
+
+.destination-image img {
+    display: block;
+    width: calc(100% + 44px);
+    margin: -18px -22px 14px -22px;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: 14px 14px 0 0;
+}
+
 .summary-card p {
     margin: 4px 0;
 }
@@ -204,6 +218,34 @@ body {
 .day-card h3 {
     margin: 0 0 8px 0;
     color: var(--color-primary-dark);
+}
+
+.activity-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.activity-row p {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Imagen pequeña por actividad (Wikipedia): si no hay, :empty la colapsa sin dejar hueco ni icono roto */
+.activity-image:empty {
+    display: none;
+}
+
+.activity-image {
+    flex-shrink: 0;
+}
+
+.activity-image img {
+    display: block;
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
 .day-card p {
@@ -581,7 +623,9 @@ body {
     .ai-disclaimer,
     .error,
     .invalid-destination-card,
-    .refine-card {
+    .refine-card,
+    .destination-image,
+    .activity-image {
         display: none !important;
     }
 

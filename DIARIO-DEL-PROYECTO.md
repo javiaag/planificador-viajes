@@ -157,7 +157,13 @@ Entre parte y parte, Javi detectó que a veces los días llegaban en inglés. Di
 - La tarjeta general quedó para tips globales del destino. Aviso reforzado: las direcciones son el dato menos fiable de la IA.
 - De nuevo compatibilidad hacia atrás: los planes guardados con el esquema anterior no rompen.
 
-*(partes D y E en curso)*
+### Parte D — Distancias y tiempos ✅
+- Nuevo `distance.js` con la **fórmula de Haversine**: distancia en línea recta entre dos coordenadas sobre la esfera terrestre. Matemáticas puras, sin APIs, gratis e instantáneo.
+- El resultado aparece entre franjas en la tarjeta del día ("→ 1,2 km · ~15 min a pie aprox.") y en el mapa: cada día ya no es una línea, sino un tramo por par de actividades, clicable con su popup de distancia.
+- Honestidad por diseño: siempre etiquetado como "línea recta, no ruta real", con sugerencia de transporte público si pasa de 3 km.
+- Una única función `formatDistanceText()` para mapa y tarjetas — la lógica de cálculo vive en un solo sitio.
+
+*(parte E en curso)*
 
 ---
 

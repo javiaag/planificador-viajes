@@ -1,12 +1,15 @@
 // Pinta en pantalla el itinerario generado por la IA.
 
-function renderActivity(icon, label, activity) {
+function renderActivity(icon, label, activity, imageId) {
     return `
-        <p>
-            <strong>${icon} ${label}:</strong> ${activity.place} — ${activity.description}<br>
-            <span class="price-note">${activity.estimatedPrice} (estimado, verificar web oficial)</span><br>
-            <span class="how-to">🧭 ${activity.howToGetThere}</span>
-        </p>
+        <div class="activity-row">
+            <div id="${imageId}" class="activity-image"></div>
+            <p>
+                <strong>${icon} ${label}:</strong> ${activity.place} — ${activity.description}<br>
+                <span class="price-note">${activity.estimatedPrice} (estimado, verificar web oficial)</span><br>
+                <span class="how-to">🧭 ${activity.howToGetThere}</span>
+            </p>
+        </div>
     `;
 }
 
@@ -30,6 +33,7 @@ function renderAIItinerary(destination, days, tripTypes, budget, group, season, 
         <button type="button" class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
         <p class="ai-disclaimer">⚠️ Precios, horarios y ubicaciones estimados por IA (sin datos en tiempo real) — las direcciones son el dato MENOS fiable, verifica siempre en la web oficial antes de viajar.</p>
         <div class="summary-card">
+            <div id="destination-image" class="destination-image"></div>
             <h2>📋 Resumen del viaje</h2>
             <p>📍 <strong>Destino:</strong> ${destination}</p>
             <p>📅 <strong>Días:</strong> ${days}</p>
@@ -49,11 +53,11 @@ function renderAIItinerary(destination, days, tripTypes, budget, group, season, 
         html += `
             <div class="day-card" style="animation-delay: ${delay}s">
                 <h3>Día ${day.day}${day.zone ? ` — ${day.zone}` : ""}</h3>
-                ${renderActivity(periodIcons.morning, "Mañana", day.morning)}
+                ${renderActivity(periodIcons.morning, "Mañana", day.morning, `activity-image-${day.day}-morning`)}
                 <p class="distance-note">${formatDistanceText(day.morning.lat, day.morning.lng, day.afternoon.lat, day.afternoon.lng)}</p>
-                ${renderActivity(periodIcons.afternoon, "Tarde", day.afternoon)}
+                ${renderActivity(periodIcons.afternoon, "Tarde", day.afternoon, `activity-image-${day.day}-afternoon`)}
                 <p class="distance-note">${formatDistanceText(day.afternoon.lat, day.afternoon.lng, day.night.lat, day.night.lng)}</p>
-                ${renderActivity(periodIcons.night, "Noche", day.night)}
+                ${renderActivity(periodIcons.night, "Noche", day.night, `activity-image-${day.day}-night`)}
                 ${renderDayRecommendations(dayRec)}
             </div>
         `;
@@ -81,4 +85,5 @@ function renderAIItinerary(destination, days, tripTypes, budget, group, season, 
     renderMap(aiData);
     saveLastPlan({ destination, days, tripTypes, budget, group, season, accommodation }, "ai", aiData);
     attachRefineHandler({ destination, days, tripTypes, budget, group, season, accommodation }, aiData);
+    loadItineraryImages(destination, aiData); // en segundo plano: el itinerario ya es usable sin esperarlas
 }
