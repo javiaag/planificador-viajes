@@ -39,6 +39,58 @@ El día no empezó con código, sino configurando el entorno: preferencias globa
 
 ---
 
+## Sesión 2 — El mapa interactivo (V3)
+*El itinerario deja de ser texto y se dibuja sobre la ciudad.*
+
+### Preparativos
+- El diario del proyecto (este documento) entró en el repositorio, ahora en formato Word.
+- Decisión de diseño previa: usar **Leaflet + OpenStreetMap** — librería veterana, gratuita, sin API key ni registro.
+
+### Paso 1 — La fontanería
+- Leaflet añadido vía CDN en `index.html`.
+- Nuevo archivo `map.js`: el mapa vive en su propio archivo para que `script.js` no siga engordando (regla del CLAUDE.md: dividir antes de que crezca demasiado).
+- Contenedor `#map-section` oculto por defecto. Un paso entero sin nada visible: primero la infraestructura, luego el espectáculo.
+
+### Paso 2 — El mapa cobra vida
+- `renderMap(aiData)` crea el mapa y, por cada día, un `L.layerGroup` con: marcadores numerados (1/2/3 = mañana/tarde/noche) del color del día, popups con lugar + franja + precio, y una línea conectando la ruta del día.
+- `fitBounds()` ajusta zoom y centro automáticamente para abarcar todos los puntos.
+- Si había un mapa de una búsqueda anterior, se destruye (`map.remove()`) antes de crear el nuevo — si no, Leaflet protesta.
+- El mapa solo aparece con itinerarios de IA (el fallback de reglas no tiene coordenadas reales).
+- **Primera prueba (Madrid, 2 días, cultural):** dos rutas de colores sobre el mapa real de Madrid — Palacio Real, Templo de Debod, Retiro... El momento más visual del proyecto hasta la fecha.
+
+### Paso 3 — Filtros por día
+- Botones "Todos" + uno por día, cada uno del color de sus marcadores (variable CSS `--day-color` por botón).
+- Al pulsar un día: se ocultan las capas del resto (`removeLayer`), queda solo su ruta, y el zoom se reajusta a esos puntos. "Todos" restaura la vista completa.
+- La arquitectura de capas del Paso 2 hizo que esta feature fuera trivial: mostrar/ocultar, sin redibujar nada. La decisión de diseño pagó dividendos en 24 horas.
+- Probado con Sevilla, 2 días: filtros y zoom funcionando a la primera.
+
+### Paso 4 — Pulido final del mapa
+- El mapa y los filtros entraron en una tarjeta "glass" como el resto de la interfaz, en vez de flotar sobre el degradado.
+- Responsive: en móvil el mapa baja a 250px de altura y los botones se compactan.
+- Detalle fino: `invalidateSize()` en el evento `resize` — Leaflet no reajusta sus tiles solo si el contenedor cambia de tamaño (ej. girar el móvil), y sin esto el mapa queda recortado.
+
+### ✅ V3 completa
+Mapa interactivo con marcadores numerados, popups, rutas por día, filtros de colores y ajuste automático de zoom. La app ya se ve, se entiende y se navega como un producto de verdad.
+
+---
+
+## Sesión 3 — V3.5: pulido pre-publicación
+*Revisión honesta antes de publicar: ¿qué le falta para que la use gente de verdad?*
+
+### La auditoría
+Con la V3 cerrada, paramos a mirar la app con ojos de usuario. Diagnóstico: (1) la key en el navegador — bloqueante, se resuelve al publicar; (2) el plan se pierde al cerrar la pestaña; (3) destinos inventados producen itinerarios inventados; (4) faltaba favicon y meta tags para compartir el enlace.
+
+### Parte A — Que el plan no se pierda ✅
+- **localStorage**: el último plan se guarda automáticamente en el navegador y se restaura al volver a abrir la página, con aviso "Tu último plan: Roma, 5 días" y botón para empezar de cero.
+- **Botón Imprimir / Guardar PDF**: `window.print()` + estilos `@media print` — la misma página tiene dos caras: la web con degradado y la versión imprimible en blanco y negro, sin formulario ni mapa, ajustada a A4 y con `break-inside: avoid` para que las tarjetas no se partan entre páginas.
+
+### Pendiente
+- Parte B: detección de destinos inválidos (campo `validDestination` en el esquema de Gemini).
+- Parte C: favicon y meta tags Open Graph.
+- Publicación online (GitHub + Vercel) con la API key protegida en el servidor — el último gran hito.
+
+---
+
 *(próximas sesiones se irán añadiendo aquí)*
 
 ---
@@ -97,7 +149,24 @@ El día no empezó con código, sino configurando el entorno: preferencias globa
 - La nuestra: sin key → reglas directamente; error o JSON malformado → reintento → reglas + aviso amarillo.
 - El usuario siempre ve algo útil, nunca una pantalla rota. Lo vivimos de verdad: la IA falló por 3 motivos distintos y la app siguió funcionando las 3 veces.
 
-### 11. Cultura de testing
+### 11. Usar librerías externas
+- No todo se escribe desde cero: una librería es código de otros que enchufas (Leaflet via CDN = una línea en el HTML) y te regala funcionalidad completa.
+- Criterios para elegir bien: gratuita, veterana, mantenida, y a poder ser sin API key.
+- La mitad del oficio moderno es saber qué librería usar y cuándo.
+
+### 12. Capas y organización visual (Leaflet)
+- Agrupar elementos relacionados en un `layerGroup` (una "capa" por día) hace que filtrar sea mostrar/ocultar capas, sin redibujar nada.
+- Decisión estructural de hoy que hace trivial la feature de mañana: eso es diseñar bien.
+
+### 13. Limpiar recursos vivos
+- Mapas, conexiones, timers... son recursos "vivos": hay que destruirlos (`map.remove()`) antes de recrearlos, o se acumulan errores.
+- Patrón general: quien crea un recurso es responsable de limpiarlo.
+
+### 14. Dividir archivos por responsabilidad
+- Cuando un archivo crece demasiado, se parte por responsabilidades: `script.js` (lógica del itinerario) y `map.js` (todo lo del mapa).
+- Mismo principio que separar HTML/CSS/JS, aplicado dentro del propio JS.
+
+### 15. Cultura de testing
 - No basta el "camino feliz": hay que **romper la app a propósito** (key inválida, campos vacíos, valores límite) y comprobar que degrada bien.
 - Probar combinaciones extremas (fiesta + presupuesto bajo) destapa los límites del diseño.
 
