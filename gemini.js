@@ -104,8 +104,9 @@ PRIMERO comprueba si "${destination}" es un lugar real y visitable (ciudad, regi
 5. Ten en cuenta el grupo (${groupInfo[group].label}), la época del año (${seasonInfo[season].label}) y las preferencias del viajero (si las hay) al elegir actividades.
 6. Incluye una sección final de recomendaciones con 3-4 restaurantes concretos (nombre, rango de precio, breve descripción) y varios tips de viajero (cómo evitar colas, qué reservar online, errores típicos de turista).
 7. Todos los precios son estimaciones tuyas, no tienes datos en tiempo real: no inventes una precisión falsa.
+8. IMPORTANTE: todo el texto que escribas (descripciones, cómo llegar, notas, recomendaciones, tips) debe estar en ESPAÑOL, sin importar el idioma del destino.
 
-Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional.`;
+Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional, y siempre en español.`;
 }
 
 // Detecta si la página se abrió con doble clic (file://) o servida desde un servidor web (http/https).

@@ -8,9 +8,9 @@ ${JSON.stringify(currentPlan)}
 
 El viajero pide este ajuste: "${refineRequest}"
 
-Modifica el itinerario para aplicar ese cambio, tocando SOLO lo necesario y manteniendo todo lo demás igual. Responde con el mismo formato JSON de siempre (mismo número de días salvo que el ajuste pida cambiarlo explícitamente), incluyendo "validDestination": true.
+Modifica el itinerario para aplicar ese cambio, tocando SOLO lo necesario y manteniendo todo lo demás igual. Responde con el mismo formato JSON de siempre (mismo número de días salvo que el ajuste pida cambiarlo explícitamente), incluyendo "validDestination": true. Todo el texto debe estar en ESPAÑOL.
 
-Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional.`;
+Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional, y siempre en español.`;
 }
 
 // Desarrollo local: llama a Gemini directamente desde el navegador.

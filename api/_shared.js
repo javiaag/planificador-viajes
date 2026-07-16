@@ -117,8 +117,9 @@ PRIMERO comprueba si "${destination}" es un lugar real y visitable (ciudad, regi
 5. Ten en cuenta el grupo (${groupInfo[group].label}), la época del año (${seasonInfo[season].label}) y las preferencias del viajero (si las hay) al elegir actividades.
 6. Incluye una sección final de recomendaciones con 3-4 restaurantes concretos (nombre, rango de precio, breve descripción) y varios tips de viajero (cómo evitar colas, qué reservar online, errores típicos de turista).
 7. Todos los precios son estimaciones tuyas, no tienes datos en tiempo real: no inventes una precisión falsa.
+8. IMPORTANTE: todo el texto que escribas (descripciones, cómo llegar, notas, recomendaciones, tips) debe estar en ESPAÑOL, sin importar el idioma del destino.
 
-Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional.`;
+Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional, y siempre en español.`;
 }
 
 function buildRefinePrompt(currentPlan, refineRequest) {
@@ -128,9 +129,9 @@ ${JSON.stringify(currentPlan)}
 
 El viajero pide este ajuste: "${refineRequest}"
 
-Modifica el itinerario para aplicar ese cambio, tocando SOLO lo necesario y manteniendo todo lo demás igual. Responde con el mismo formato JSON de siempre (mismo número de días salvo que el ajuste pida cambiarlo explícitamente), incluyendo "validDestination": true.
+Modifica el itinerario para aplicar ese cambio, tocando SOLO lo necesario y manteniendo todo lo demás igual. Responde con el mismo formato JSON de siempre (mismo número de días salvo que el ajuste pida cambiarlo explícitamente), incluyendo "validDestination": true. Todo el texto debe estar en ESPAÑOL.
 
-Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional.`;
+Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional, y siempre en español.`;
 }
 
 module.exports = { GEMINI_API_URL, itinerarySchema, buildPrompt, buildRefinePrompt };
