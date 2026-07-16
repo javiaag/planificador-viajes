@@ -1,0 +1,8 @@
+/* Estilos mínimos para empezar — los mejoraremos al final de la V1 */
+
+body {
+    font-family: system-ui, sans-serif; /* fuente del sistema, se ve bien en cualquier equipo */
+    max-width: 700px;                   /* limita el ancho para que se lea cómodo */
+    margin: 0 auto;                     /* centra el contenido en la pantalla */
+    padding: 20px;
+}
