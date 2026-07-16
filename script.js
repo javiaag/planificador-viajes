@@ -214,7 +214,12 @@ PRIMERO comprueba si "${destination}" es un lugar real y visitable (ciudad, regi
 Responde ÚNICAMENTE con el JSON solicitado, sin texto adicional.`;
 }
 
-async function callGeminiItinerary(destination, days, tripType, budget, group, season, accommodation) {
+// Detecta si la página se abrió con doble clic (file://) o servida desde un servidor web (http/https).
+// En local llamamos a Gemini directamente con la key de config.js; en producción, vía nuestra función serverless.
+const isLocalFile = window.location.protocol === "file:";
+
+// Desarrollo local: llama a Gemini directamente desde el navegador (necesita config.js con tu key).
+async function callGeminiDirectly(destination, days, tripType, budget, group, season, accommodation) {
     const prompt = buildPrompt(destination, days, tripType, budget, group, season, accommodation);
 
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
@@ -240,8 +245,36 @@ async function callGeminiItinerary(destination, days, tripType, budget, group, s
     return JSON.parse(rawText);
 }
 
-// Comprueba que config.js se cargó y que la key no es el placeholder de la plantilla.
+// Producción: la key vive en el servidor (Vercel), el navegador solo llama a nuestra propia API.
+async function callGeminiViaApi(destination, days, tripType, budget, group, season, accommodation) {
+    const response = await fetch("/api/generate-itinerary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ destination, days, tripType, budget, group, season, accommodation })
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("Respuesta de error completa del servidor:", errorBody);
+        throw new Error(`El servidor respondió con estado ${response.status}`);
+    }
+
+    return response.json();
+}
+
+function callGeminiItinerary(destination, days, tripType, budget, group, season, accommodation) {
+    if (isLocalFile) {
+        return callGeminiDirectly(destination, days, tripType, budget, group, season, accommodation);
+    }
+    return callGeminiViaApi(destination, days, tripType, budget, group, season, accommodation);
+}
+
+// En local, comprueba que config.js se cargó y que la key no es el placeholder de la plantilla.
+// En producción no hace falta: la key la gestiona el servidor, y si algo falla ya lo cubre el fallback.
 function isGeminiConfigured() {
+    if (!isLocalFile) {
+        return true;
+    }
     return typeof GEMINI_API_KEY !== "undefined" && GEMINI_API_KEY && GEMINI_API_KEY !== "TU_API_KEY_AQUI";
 }
 

@@ -84,9 +84,19 @@ Con la V3 cerrada, paramos a mirar la app con ojos de usuario. Diagnóstico: (1)
 - **localStorage**: el último plan se guarda automáticamente en el navegador y se restaura al volver a abrir la página, con aviso "Tu último plan: Roma, 5 días" y botón para empezar de cero.
 - **Botón Imprimir / Guardar PDF**: `window.print()` + estilos `@media print` — la misma página tiene dos caras: la web con degradado y la versión imprimible en blanco y negro, sin formulario ni mapa, ajustada a A4 y con `break-inside: avoid` para que las tarjetas no se partan entre páginas.
 
+### Parte B — Destinos inválidos ✅
+- Nuevo campo `validDestination` (booleano) en el esquema JSON — y pasó a ser el único obligatorio, para que Gemini no esté forzado a inventarse un itinerario cuando el destino no existe.
+- Si el destino es falso ("asdfghjk", "Narnia"), la IA responde solo `{"validDestination": false}` y la app muestra un mensaje amable — sin reintentos y, muy importante, SIN caer al generador de reglas (que inventaría un plan para un sitio inexistente). Lección: a veces la robustez consiste en NO dar respuesta.
+
+### Parte C — Carta de presentación ✅
+- Favicon ✈️ como SVG inline (`data:image/svg+xml`) — sin archivos de imagen.
+- Meta description + etiquetas Open Graph: lo que leen WhatsApp/Twitter para mostrar una tarjeta bonita al compartir el enlace, en vez de la URL pelada.
+- Título de pestaña descriptivo.
+
+### ✅ V3.5 completa
+Persistencia del plan, impresión limpia en PDF, destinos inválidos controlados y carta de presentación lista. La app está preparada para salir al mundo.
+
 ### Pendiente
-- Parte B: detección de destinos inválidos (campo `validDestination` en el esquema de Gemini).
-- Parte C: favicon y meta tags Open Graph.
 - Publicación online (GitHub + Vercel) con la API key protegida en el servidor — el último gran hito.
 
 ---

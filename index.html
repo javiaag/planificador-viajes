@@ -83,7 +83,10 @@
     <!-- Leaflet: librería de mapas gratuita, sin API key, con mapas de OpenStreetMap -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="map.js"></script>
-    <!-- config.js contiene tu API key personal y NUNCA se sube a Git (ver .gitignore) -->
+    <!-- config.js contiene tu API key personal y NUNCA se sube a Git (ver .gitignore).
+         Solo hace falta para desarrollar en local (file://). En producción (Vercel) este
+         archivo no existe y da un 404 en la pestaña Network: es normal e inofensivo,
+         porque en producción la key la gestiona el servidor (api/generate-itinerary.js). -->
     <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
