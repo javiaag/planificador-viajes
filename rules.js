@@ -106,6 +106,15 @@ const activities = {
     }
 };
 
+// Traduce el presupuesto total en € a un nivel 1/2/3 (usado por el generador de reglas).
+// Es una aproximación simple: reparte el presupuesto entre días y franjas del día.
+function estimateBudgetLevel(totalBudget, days) {
+    const perActivity = totalBudget / days / 3;
+    if (perActivity < 15) return 1;
+    if (perActivity < 40) return 2;
+    return 3;
+}
+
 // Filtra una lista de actividades por presupuesto, grupo y época.
 // Si los filtros dejan la lista vacía, se relajan en cascada para no quedarnos sin opciones.
 function filterActivities(list, budgetLevel, group, season) {
