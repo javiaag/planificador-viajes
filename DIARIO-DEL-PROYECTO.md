@@ -163,7 +163,14 @@ Entre parte y parte, Javi detectó que a veces los días llegaban en inglés. Di
 - Honestidad por diseño: siempre etiquetado como "línea recta, no ruta real", con sugerencia de transporte público si pasa de 3 km.
 - Una única función `formatDistanceText()` para mapa y tarjetas — la lógica de cálculo vive en un solo sitio.
 
-*(parte E en curso)*
+### Parte E — Imágenes de los lugares ✅ (con caza de bug incluida)
+- Nuevo `wiki.js`: busca en la API REST de Wikipedia (gratuita, sin key) un thumbnail por actividad y una imagen de cabecera del destino.
+- Diseño "nunca bloquees nada": el itinerario se pinta primero y las imágenes van apareciendo después (fire-and-forget). Si no hay imagen, la tarjeta se ve perfecta — truco CSS `:empty { display: none }`.
+- **La saga de Cantabria** 🗺️: Javi probó con Cantabria y la cabecera mostró... un mapa de España. Primera iteración: filtrar por palabras ("map", "locat") — no funcionó, el archivo se llamaba `Cantabria_in_Spain.svg`. Segunda iteración, razonando en vez de parchear: en Wikimedia los mapas/banderas/escudos son casi siempre SVG y las fotos reales JPG → filtrar SVG. Funcionó. Y Javi remató con la pregunta correcta: "asegúrate de que no pasa con otros destinos" → tercera capa: descartar páginas de desambiguación (¿"Santander" ciudad o banco?).
+- Cierre con honestidad: ningún filtro heurístico es infalible al 100% (queda el caso residual de fotomontajes), pero pase lo que pase la app nunca se rompe — como mucho, una imagen decorativa rara.
+
+### ✅ V5 COMPLETA
+Tipos combinables, preferencias libres, refinamiento conversacional, recomendaciones por día, distancias y tiempos, e imágenes. La app dejó de ser un proyecto de aprendizaje con buena pinta y pasó a ser un producto que escucha a sus usuarios y conversa con ellos.
 
 ---
 
