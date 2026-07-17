@@ -2,6 +2,13 @@
 // Todo aquí es "best effort": si algo falla o no hay imagen, no pasa nada — la tarjeta
 // se ve perfecta sin ella. Las imágenes se cargan en segundo plano, nunca bloquean el render.
 
+// Las páginas de regiones/países suelen tener como imagen principal un mapa de localización
+// en vez de una foto — los archivos de Wikimedia para eso casi siempre incluyen estas palabras
+// en el nombre, así que los descartamos: peor tener menos imágenes que mostrar mapas sin sentido.
+function looksLikeMapImage(url) {
+    return /map|mapa|locat/i.test(url);
+}
+
 async function fetchWikipediaThumbnail(placeName) {
     try {
         const response = await fetch(`https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(placeName)}`);
@@ -9,7 +16,11 @@ async function fetchWikipediaThumbnail(placeName) {
             return null;
         }
         const data = await response.json();
-        return data.thumbnail ? data.thumbnail.source : null;
+        const thumbnailUrl = data.thumbnail ? data.thumbnail.source : null;
+        if (thumbnailUrl && looksLikeMapImage(thumbnailUrl)) {
+            return null;
+        }
+        return thumbnailUrl;
     } catch (error) {
         return null; // sin conexión, CORS, la página no existe... el resultado es el mismo: sin imagen
     }
