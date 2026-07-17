@@ -18,6 +18,11 @@ async function fetchWikipediaThumbnail(placeName) {
             return null;
         }
         const data = await response.json();
+        // Página de desambiguación (nombre ambiguo, ej. "Santander" ciudad vs banco): la imagen
+        // no tiene por qué ser del lugar que buscamos, mejor no arriesgarse.
+        if (data.type === "disambiguation") {
+            return null;
+        }
         const thumbnailUrl = data.thumbnail ? data.thumbnail.source : null;
         if (thumbnailUrl && looksLikeNonPhoto(thumbnailUrl)) {
             return null;
